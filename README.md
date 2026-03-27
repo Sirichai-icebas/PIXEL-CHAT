@@ -15,13 +15,13 @@ Real-time public chatroom with a pixel-art inspired UI. No sign-up required — 
 ## Screenshots
 
 ### Lobby — Pick your name and avatar
-![Lobby](screenshots/01-lobby.png)
+![Lobby](https://raw.githubusercontent.com/Sirichai-icebas/PIXEL-CHAT/main/screenshots/01-lobby.png)
 
 ### Room List — Browse and create chat rooms
-![Room List](screenshots/02-rooms.png)
+![Room List](https://raw.githubusercontent.com/Sirichai-icebas/PIXEL-CHAT/main/screenshots/02-rooms.png)
 
 ### Chat Room — Real-time messaging with online users panel
-![Chat Room](screenshots/03-chatroom.png)
+![Chat Room](https://raw.githubusercontent.com/Sirichai-icebas/PIXEL-CHAT/main/screenshots/03-chatroom.png)
 
 ## Tech Stack
 

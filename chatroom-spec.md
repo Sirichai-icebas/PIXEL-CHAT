@@ -223,24 +223,31 @@
 
 | หัวข้อ | แนวทาง |
 |---|---|
-| **Theme** | Modern dark หรือ light theme, เลือกได้ |
-| **Font** | อ่านง่าย, รองรับภาษาไทย เช่น Noto Sans Thai, Sarabun |
-| **Color** | Primary accent color 1 สี + neutral background |
+| **Theme** | Clean modern **light theme** — พื้นขาว/เทาอ่อน, soft shadows, rounded corners |
+| **Primary Color** | Pink/Coral (#FF4458) เป็น accent หลัก + gradient pink สำหรับ CTA buttons |
+| **Secondary Colors** | Warm gray (#F5F5F5) backgrounds, Dark (#1A1A2E) text, Light gray (#E8E8E8) borders |
+| **Font** | Rounded, friendly — 'Nunito' + 'Noto Sans Thai' (รองรับภาษาไทย) |
+| **Cards** | Rounded corners (16-20px), soft box-shadow, white background |
+| **Avatars** | Circular avatars พร้อม online status dot (green) |
+| **Buttons** | Rounded pill-shaped, pink gradient primary, outlined secondary |
+| **Illustrations** | Cute emoji/sticker style icons สำหรับห้องแชท |
+| **Layout** | Card-based, spacious padding, clean hierarchy |
 | **Loading State** | Skeleton loader ขณะโหลดข้อความเก่า |
 | **Error State** | Toast notification เมื่อส่งข้อความไม่สำเร็จ |
-| **Empty State** | แสดงข้อความชวนเริ่มแชทเมื่อยังไม่มีข้อความ |
+| **Empty State** | แสดงข้อความชวนเริ่มแชทเมื่อยังไม่มีข้อความ + cute illustration |
+
+### Design Reference
+- สไตล์ Dating/Social App — clean, white, rounded, pink accent
+- Room cards แบบ grid พร้อม cute illustrations
+- Message bubbles: ของตัวเอง = pink/coral, ของคนอื่น = light gray
+- Header: white background, subtle bottom shadow
+- Online users: circular avatar + green dot status indicator
 
 ---
 
 ## 8. Default Avatars
 
-มี Avatar สำเร็จรูปอย่างน้อย **12 แบบ** แบ่งเป็น:
-
-| ประเภท | จำนวน | ตัวอย่าง |
-|---|---|---|
-| Animal Illustrations | 6 | 🐱 🐶 🐼 🦊 🐸 🐧 |
-| Abstract / Geometric | 3 | สีสันต่างกัน |
-| Emoji-style | 3 | 😊 🤖 👾 |
+มี Avatar สำเร็จรูปอย่างน้อย **12 แบบ** — ใช้ Roblox-style block characters พร้อมสีสันต่างกัน
 
 > ทุก default avatar มี `id` และ `label` สำหรับ accessibility
 
@@ -295,4 +302,4 @@
 
 ---
 
-*Spec version 1.1 — วันที่ 28 มีนาคม 2569 (เพิ่ม Group Voice/Video Call MVP)*
+*Spec version 1.2 — วันที่ 28 มีนาคม 2569 (เปลี่ยน UI เป็น light theme สไตล์ dating/social app)*

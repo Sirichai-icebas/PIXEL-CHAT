@@ -58,6 +58,7 @@ rooms.set('chill', {
 // Track which room each socket is in
 const socketRoom = new Map(); // socketId -> roomId
 const socketUser = new Map(); // socketId -> user info
+const dmHistory = new Map(); // conversationKey -> messages[]
 
 function getRoomList() {
   const list = [];
@@ -319,6 +320,101 @@ io.on('connection', (socket) => {
       roomId: data.roomId,
       roomName: room.name,
     });
+  });
+
+  // ===== DIRECT MESSAGES (1:1 Chat) =====
+
+  // DM history store: Map<conversationKey, messages[]>
+  // conversationKey = sorted pair of userIds joined by ':'
+
+  socket.on('dm:send', (data) => {
+    const user = socketUser.get(socket.id);
+    if (!user) return;
+    const targetSocket = io.sockets.sockets.get(data.targetSocketId);
+    const targetUser = socketUser.get(data.targetSocketId);
+    if (!targetSocket || !targetUser) return;
+
+    const content = (data.content || '').trim();
+    if (!content || content.length > 500) return;
+
+    const msg = {
+      id: uuidv4(),
+      fromSocketId: socket.id,
+      fromUserId: user.userId,
+      fromDisplayName: user.displayName,
+      fromAvatarId: user.avatarId,
+      fromProfilePhoto: user.profilePhoto,
+      toSocketId: data.targetSocketId,
+      toUserId: targetUser.userId,
+      content,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Store in DM history
+    const key = [user.userId, targetUser.userId].sort().join(':');
+    if (!dmHistory.has(key)) dmHistory.set(key, []);
+    const history = dmHistory.get(key);
+    history.push(msg);
+    if (history.length > 50) history.shift();
+
+    // Send to both sender and receiver
+    socket.emit('dm:message', msg);
+    targetSocket.emit('dm:message', msg);
+  });
+
+  socket.on('dm:send-image', (data) => {
+    const user = socketUser.get(socket.id);
+    if (!user) return;
+    const targetSocket = io.sockets.sockets.get(data.targetSocketId);
+    const targetUser = socketUser.get(data.targetSocketId);
+    if (!targetSocket || !targetUser) return;
+
+    const imageUrl = data.imageUrl;
+    if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.startsWith('data:image/') || imageUrl.length > 5500000) return;
+
+    const msg = {
+      id: uuidv4(),
+      fromSocketId: socket.id,
+      fromUserId: user.userId,
+      fromDisplayName: user.displayName,
+      fromAvatarId: user.avatarId,
+      fromProfilePhoto: user.profilePhoto,
+      toSocketId: data.targetSocketId,
+      toUserId: targetUser.userId,
+      content: data.content || '',
+      imageUrl,
+      timestamp: new Date().toISOString(),
+      type: 'image',
+    };
+
+    const key = [user.userId, targetUser.userId].sort().join(':');
+    if (!dmHistory.has(key)) dmHistory.set(key, []);
+    const history = dmHistory.get(key);
+    history.push(msg);
+    if (history.length > 50) history.shift();
+
+    socket.emit('dm:message', msg);
+    targetSocket.emit('dm:message', msg);
+  });
+
+  socket.on('dm:history', (data) => {
+    const user = socketUser.get(socket.id);
+    if (!user) return;
+    const targetUser = socketUser.get(data.targetSocketId);
+    if (!targetUser) return;
+
+    const key = [user.userId, targetUser.userId].sort().join(':');
+    const history = dmHistory.get(key) || [];
+    socket.emit('dm:history', { targetSocketId: data.targetSocketId, messages: history });
+  });
+
+  socket.on('dm:typing', (data) => {
+    const user = socketUser.get(socket.id);
+    if (!user) return;
+    const targetSocket = io.sockets.sockets.get(data.targetSocketId);
+    if (targetSocket) {
+      targetSocket.emit('dm:typing', { fromSocketId: socket.id, displayName: user.displayName });
+    }
   });
 
   // Disconnect

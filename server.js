@@ -59,6 +59,8 @@ rooms.set('chill', {
 const socketRoom = new Map(); // socketId -> roomId
 const socketUser = new Map(); // socketId -> user info
 const dmHistory = new Map(); // conversationKey -> messages[]
+const socketLastSeen = new Map(); // socketId -> timestamp (for stale user cleanup)
+const STALE_USER_TIMEOUT = 3 * 60 * 1000; // 3 minutes
 
 function getRoomList() {
   const list = [];
@@ -76,6 +78,12 @@ function getRoomList() {
 
 io.on('connection', (socket) => {
   console.log(`Connected: ${socket.id}`);
+  socketLastSeen.set(socket.id, Date.now());
+
+  // Heartbeat: update last seen on any activity
+  socket.onAny(() => {
+    socketLastSeen.set(socket.id, Date.now());
+  });
 
   // Send room list and global users on connect
   socket.emit('room-list', getRoomList());
@@ -437,6 +445,7 @@ io.on('connection', (socket) => {
       }
     }
     socketUser.delete(socket.id);
+    socketLastSeen.delete(socket.id);
     broadcastGlobalUsers();
     console.log(`Disconnected: ${socket.id}`);
   });
@@ -1176,6 +1185,53 @@ function broadcastGlobalUsers() {
     io.emit('global-users', getGlobalOnlineUsers());
   }, 300);
 }
+
+// ===== STALE USER & CALL CLEANUP (every 30s) =====
+setInterval(() => {
+  const now = Date.now();
+  let changed = false;
+
+  // Clean up stale users (no activity for 3 minutes)
+  for (const [sid, lastSeen] of socketLastSeen) {
+    if (now - lastSeen > STALE_USER_TIMEOUT) {
+      const sock = io.sockets.sockets.get(sid);
+      if (!sock || !sock.connected) {
+        // User socket is gone — clean up
+        const roomId = socketRoom.get(sid);
+        if (roomId) {
+          const room = rooms.get(roomId);
+          if (room) room.users.delete(sid);
+          socketRoom.delete(sid);
+        }
+        socketUser.delete(sid);
+        socketLastSeen.delete(sid);
+        changed = true;
+        console.log(`Stale user removed: ${sid}`);
+      }
+    }
+  }
+
+  // Clean up stale private calls (active for more than 3 minutes with disconnected participants)
+  for (const [callId, call] of privateCalls) {
+    const callerSocket = io.sockets.sockets.get(call.callerSocketId);
+    const calleeSocket = io.sockets.sockets.get(call.calleeSocketId);
+    const callerGone = !callerSocket || !callerSocket.connected;
+    const calleeGone = !calleeSocket || !calleeSocket.connected;
+
+    if (callerGone || calleeGone) {
+      clearTimeout(call.timeout);
+      call.status = 'ended';
+      // Notify the remaining party
+      if (!callerGone && callerSocket) callerSocket.emit('private-call:ended', { callId });
+      if (!calleeGone && calleeSocket) calleeSocket.emit('private-call:ended', { callId });
+      privateCalls.delete(callId);
+      changed = true;
+      console.log(`Stale call removed: ${callId}`);
+    }
+  }
+
+  if (changed) broadcastGlobalUsers();
+}, 30000);
 
 // ===== PRIVATE 1:1 CALL =====
 function handlePrivateCallEvents(socket) {

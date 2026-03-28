@@ -1134,9 +1134,10 @@ body {
 .dm-input-area input[type="text"]:focus { border-color: #FF4458; background: #fff; }
 .dm-input-area .btn-send {
   background: #FF4458; border: none; color: #fff;
-  width: 34px; height: 34px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; min-width: 34px; border-radius: 50%;
+  padding: 0; display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(255, 68, 88, 0.3);
 }
 .dm-input-area .btn-send:hover { transform: scale(1.05); }
 .dm-input-area .btn-send:disabled { opacity: 0.35; cursor: default; transform: none; }

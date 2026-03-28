@@ -857,7 +857,13 @@ body {
 .status-msg-input input {
   width: 100%; padding: 6px 8px; border: 1px solid var(--surface3);
   border-radius: 6px; font-family: var(--font); font-size: 0.75rem;
-  outline: none;
+  outline: none; margin-bottom: 6px;
+}
+.btn-status-save {
+  width: 100%; padding: 6px; border: none; border-radius: 6px;
+  background: var(--pink-gradient); color: #fff;
+  font-family: var(--font); font-size: 0.75rem; font-weight: 700;
+  cursor: pointer;
 }
 
 /* Room list body layout */

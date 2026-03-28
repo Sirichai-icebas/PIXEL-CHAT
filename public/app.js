@@ -1594,9 +1594,17 @@
     });
   });
 
-  statusMsgInput.addEventListener('change', () => {
+  function saveStatusMessage() {
     myStatusMessage = statusMsgInput.value.trim().slice(0, 50);
     if (socket) socket.emit('set-status', { status: myStatus, statusMessage: myStatusMessage });
+    statusMenu.style.display = 'none';
+  }
+  document.getElementById('statusMsgSave').addEventListener('click', (e) => {
+    e.stopPropagation();
+    saveStatusMessage();
+  });
+  statusMsgInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); saveStatusMessage(); }
   });
   statusMsgInput.addEventListener('click', (e) => e.stopPropagation());
 

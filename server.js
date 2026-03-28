@@ -77,8 +77,9 @@ function getRoomList() {
 io.on('connection', (socket) => {
   console.log(`Connected: ${socket.id}`);
 
-  // Send room list on connect
+  // Send room list and global users on connect
   socket.emit('room-list', getRoomList());
+  socket.emit('global-users', getGlobalOnlineUsers());
 
   // User sets their profile
   socket.on('set-profile', (data) => {
@@ -1147,6 +1148,7 @@ function handleCallEvents(socket) {
 }
 
 // ===== GLOBAL USERS =====
+
 function getGlobalOnlineUsers() {
   const users = [];
   for (const [sid, u] of socketUser) {

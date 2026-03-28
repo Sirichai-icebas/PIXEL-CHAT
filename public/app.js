@@ -108,12 +108,23 @@
   // Invitation state
   let pendingInvite = null;
 
+  // DM state
+  let dmTargetSocketId = null;
+  let dmTargetUser = null;
+  let dmOpen = false;
+  let dmTypingTimer = null;
+
   // DOM refs
   const lobby = document.getElementById('lobby');
   const roomListScreen = document.getElementById('roomList');
   const chatroom = document.getElementById('chatroom');
   const nameInput = document.getElementById('displayName');
-  const nameCount = document.getElementById('nameCount');
+  const joinBtn = document.getElementById('joinBtn');
+
+  // Set default name for easier testing
+  nameInput.value = 'Guest_' + Math.floor(Math.random() * 1000);
+  joinBtn.disabled = false;
+
   const builderPreview = document.getElementById('builderPreview');
   const skinPicker = document.getElementById('skinPicker');
   const shirtPicker = document.getElementById('shirtPicker');
@@ -155,7 +166,23 @@
   const pcMuteBtn = document.getElementById('pcMuteBtn');
   const pcCameraBtn = document.getElementById('pcCameraBtn');
   const pcEndBtn = document.getElementById('pcEndBtn');
-  const joinBtn = document.getElementById('joinBtn');
+  // DM DOM refs
+  const dmPanel = document.getElementById('dmPanel');
+  const dmMessages = document.getElementById('dmMessages');
+  const dmInput = document.getElementById('dmInput');
+  const dmSendBtn = document.getElementById('dmSendBtn');
+  const dmCloseBtn = document.getElementById('dmCloseBtn');
+  const dmCallBtn = document.getElementById('dmCallBtn');
+  const dmPeerAvatar = document.getElementById('dmPeerAvatar');
+  const dmPeerName = document.getElementById('dmPeerName');
+  const dmPeerStatus = document.getElementById('dmPeerStatus');
+  const dmTyping = document.getElementById('dmTyping');
+  const dmImageInput = document.getElementById('dmImageInput');
+  const dmImageBtn = document.getElementById('dmImageBtn');
+  const dmNotification = document.getElementById('dmNotification');
+  const dmNotifAvatar = document.getElementById('dmNotifAvatar');
+  const dmNotifName = document.getElementById('dmNotifName');
+  const dmNotifText = document.getElementById('dmNotifText');
   const userBadge = document.getElementById('userBadge');
   const roomGrid = document.getElementById('roomGrid');
   const createRoomBtn = document.getElementById('createRoomBtn');
@@ -689,6 +716,37 @@
     });
 
     socket.on('private-call:error', (data) => alert(data.message));
+
+    // DM listeners
+    socket.on('dm:message', (msg) => {
+      const isFromTarget = msg.fromSocketId === dmTargetSocketId;
+      const isToTarget = msg.toSocketId === dmTargetSocketId;
+      if (dmOpen && (isFromTarget || isToTarget)) {
+        appendDmMessage(msg);
+        dmTyping.style.display = 'none';
+        if (msg.fromUserId !== userId) playMsnSound();
+      } else if (msg.fromUserId !== userId) {
+        showDmNotification(msg);
+      }
+    });
+
+    socket.on('dm:history', (data) => {
+      if (data.targetSocketId !== dmTargetSocketId) return;
+      dmMessages.innerHTML = '';
+      if (data.messages.length === 0) {
+        dmMessages.innerHTML = '<div class="dm-empty">ส่งข้อความแรกเลย!</div>';
+        return;
+      }
+      data.messages.forEach(msg => appendDmMessage(msg));
+    });
+
+    socket.on('dm:typing', (data) => {
+      if (dmOpen && data.fromSocketId === dmTargetSocketId) {
+        dmTyping.textContent = `${data.displayName} กำลังพิมพ์...`;
+        dmTyping.style.display = 'block';
+        setTimeout(() => { dmTyping.style.display = 'none'; }, 3000);
+      }
+    });
   }
 
   // ===== ROOM LIST =====
@@ -1544,6 +1602,9 @@
             </div>
           </div>
           <div class="gu-actions">
+            <button class="gu-btn gu-chat-btn" title="แชท">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </button>
             <button class="gu-btn gu-call-btn" title="โทรหา">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </button>
@@ -1552,6 +1613,8 @@
             </button>` : ''}
           </div>
         `;
+        // Chat button
+        item.querySelector('.gu-chat-btn').addEventListener('click', () => openDM(u));
         // Call button
         item.querySelector('.gu-call-btn').addEventListener('click', () => {
           if (privateCallId) { alert('คุณมีสายอยู่แล้ว'); return; }
@@ -1697,6 +1760,165 @@
   function stopPcTimer() {
     if (pcTimerInterval) { clearInterval(pcTimerInterval); pcTimerInterval = null; }
     pcTimer.textContent = '00:00';
+  }
+
+  // ===== DIRECT MESSAGES (1:1 Chat) =====
+
+  // Helper: render avatar from DM message fields
+  function renderAvatarFromMsg(msg, size) {
+    return renderAvatar({
+      avatarId: msg.fromAvatarId,
+      profilePhoto: msg.fromProfilePhoto,
+      displayName: msg.fromDisplayName
+    }, size);
+  }
+
+  function playMsnSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // Classic MSN "nudge"-style two-tone
+      const now = ctx.currentTime;
+      [[880, 0, 0.12], [1100, 0.12, 0.12], [880, 0.28, 0.08]].forEach(([freq, start, dur]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, now + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + start);
+        osc.stop(now + start + dur + 0.01);
+      });
+      setTimeout(() => ctx.close(), 1000);
+    } catch (e) { /* ignore audio errors */ }
+  }
+
+  function openDM(user) {
+    dmTargetSocketId = user.socketId;
+    dmTargetUser = user;
+    dmOpen = true;
+    dmPeerAvatar.innerHTML = renderAvatar(user, 'small');
+    dmPeerName.textContent = user.displayName;
+    const statusLabels = { online: 'ออนไลน์', away: 'ไม่อยู่', busy: 'ห้ามรบกวน' };
+    dmPeerStatus.textContent = statusLabels[user.status] || 'ออนไลน์';
+    dmPeerStatus.className = `dm-peer-status status-${user.status || 'online'}`;
+    dmMessages.innerHTML = '<div class="dm-empty">ส่งข้อความแรกเลย!</div>';
+    dmPanel.style.display = 'flex';
+    dmInput.focus();
+    if (socket) socket.emit('dm:history', { targetSocketId: user.socketId });
+  }
+
+  function closeDM() {
+    dmOpen = false;
+    dmTargetSocketId = null;
+    dmTargetUser = null;
+    dmPanel.style.display = 'none';
+    dmMessages.innerHTML = '';
+    dmTyping.style.display = 'none';
+  }
+
+  function appendDmMessage(msg) {
+    const empty = dmMessages.querySelector('.dm-empty');
+    if (empty) empty.remove();
+    const isOwn = msg.fromUserId === userId;
+    const div = document.createElement('div');
+    div.className = `dm-msg ${isOwn ? 'own' : 'other'}`;
+    const time = new Date(msg.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    let content = '';
+    if (msg.type === 'image' && msg.imageUrl) {
+      content = `<img class="dm-msg-image" src="${msg.imageUrl}" alt="รูปภาพ" />`;
+      if (msg.content) content += `<div class="dm-msg-text">${esc(msg.content)}</div>`;
+    } else {
+      content = `<div class="dm-msg-text">${esc(msg.content)}</div>`;
+    }
+    div.innerHTML = `
+      ${!isOwn ? `<div class="dm-msg-avatar">${renderAvatarFromMsg(msg, 'small')}</div>` : ''}
+      <div class="dm-msg-bubble">
+        ${content}
+        <span class="dm-msg-time">${time}</span>
+      </div>
+    `;
+    dmMessages.appendChild(div);
+    dmMessages.scrollTop = dmMessages.scrollHeight;
+  }
+
+  dmCloseBtn.addEventListener('click', closeDM);
+  dmCallBtn.addEventListener('click', () => {
+    if (!dmTargetSocketId) return;
+    if (privateCallId) { alert('คุณมีสายอยู่แล้ว'); return; }
+    initiatePrivateCall(dmTargetSocketId);
+  });
+
+  dmInput.addEventListener('input', () => {
+    dmSendBtn.disabled = !dmInput.value.trim();
+    if (dmTargetSocketId && socket) {
+      if (dmTypingTimer) clearTimeout(dmTypingTimer);
+      socket.emit('dm:typing', { targetSocketId: dmTargetSocketId });
+      dmTypingTimer = setTimeout(() => { dmTypingTimer = null; }, 2000);
+    }
+  });
+
+  dmInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendDM();
+    }
+  });
+
+  dmSendBtn.addEventListener('click', sendDM);
+
+  function sendDM() {
+    const content = dmInput.value.trim();
+    if (!content || !dmTargetSocketId || !socket) return;
+    socket.emit('dm:send', { targetSocketId: dmTargetSocketId, content });
+    dmInput.value = '';
+    dmSendBtn.disabled = true;
+  }
+
+  dmImageBtn.addEventListener('click', () => dmImageInput.click());
+  dmImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file || !dmTargetSocketId || !socket) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const max = 800;
+        let w = img.width, h = img.height;
+        if (w > max || h > max) {
+          if (w > h) { h = Math.round(h * max / w); w = max; }
+          else { w = Math.round(w * max / h); h = max; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const imageUrl = canvas.toDataURL('image/jpeg', 0.7);
+        socket.emit('dm:send-image', { targetSocketId: dmTargetSocketId, imageUrl });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    dmImageInput.value = '';
+  });
+
+  // DM socket listeners are registered inside connectSocket() — see setupDmSocketListeners()
+
+  let dmNotifTimeout = null;
+  function showDmNotification(msg) {
+    playMsnSound();
+    dmNotifAvatar.innerHTML = renderAvatarFromMsg(msg, 'small');
+    dmNotifName.textContent = msg.fromDisplayName;
+    dmNotifText.textContent = msg.type === 'image' ? '📷 ส่งรูปภาพ' : msg.content.slice(0, 40);
+    dmNotification.style.display = 'flex';
+    dmNotification.onclick = () => {
+      dmNotification.style.display = 'none';
+      // Find user in global list
+      const u = globalOnlineUsers.find(u => u.socketId === msg.fromSocketId);
+      if (u) openDM(u);
+    };
+    if (dmNotifTimeout) clearTimeout(dmNotifTimeout);
+    dmNotifTimeout = setTimeout(() => { dmNotification.style.display = 'none'; }, 5000);
   }
 
 })();

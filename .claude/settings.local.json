@@ -13,7 +13,25 @@
       "Bash(brew install:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh repo:*)",
+      "Bash(npx --yes playwright --version)",
+      "Bash(npx playwright:*)",
+      "Bash(node take-screenshots.mjs)",
+      "Bash(npx playwright-core@latest run take-screenshots.cjs)",
+      "Bash(node -e \"require\\(''''playwright-core''''\\)\")",
+      "Bash(node take-screenshots.cjs)",
+      "Bash(npm uninstall:*)",
+      "Bash(git push:*)",
+      "Bash(git check-attr:*)",
+      "Bash(gh api:*)",
+      "Bash(curl -sI \"https://raw.githubusercontent.com/Sirichai-icebas/PIXEL-CHAT/main/screenshots/01-lobby.png\")",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(node -c server.js)",
+      "Bash(node -c public/app.js)",
+      "Bash(rm -f /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/HEAD.lock /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/index.lock)",
+      "Bash(ls /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/*.lock)"
     ]
   }
 }

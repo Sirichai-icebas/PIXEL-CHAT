@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PIXEL CHAT</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -25,12 +25,45 @@
       </div>
 
       <div class="form-group">
-        <label>เลือกตัวละคร</label>
-        <div class="avatar-grid" id="avatarGrid"></div>
+        <label>โปรไฟล์</label>
+        <div class="avatar-tabs">
+          <button class="avatar-tab active" id="tabPhoto">รูปโปรไฟล์</button>
+          <button class="avatar-tab" id="tabChar">สร้างตัวละคร</button>
+        </div>
+        <div id="photoSection" class="avatar-section">
+          <div class="photo-preview" id="photoPreview">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" />
+          <button class="btn-upload" id="uploadPhotoBtn">อัปโหลดรูป</button>
+          <span class="photo-hint">หรือเลือกตัวละครด้านล่าง</span>
+        </div>
+        <div id="charSection" class="avatar-section" style="display:none;">
+          <div class="character-builder" id="characterBuilder">
+            <div class="builder-preview" id="builderPreview"></div>
+            <div class="builder-section">
+              <span class="builder-label">สีผิว</span>
+              <div class="color-row" id="skinPicker"></div>
+            </div>
+            <div class="builder-section">
+              <span class="builder-label">สีเสื้อ</span>
+              <div class="color-row" id="shirtPicker"></div>
+            </div>
+            <div class="builder-section">
+              <span class="builder-label">สีกางเกง</span>
+              <div class="color-row" id="pantsPicker"></div>
+            </div>
+            <div class="builder-section">
+              <span class="builder-label">เครื่องประดับ</span>
+              <div class="acc-row" id="accessoryPicker"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <button id="joinBtn" class="btn-play" disabled>
-        <span class="btn-play-icon">▶</span> เข้าเกม
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        เข้าเกม
       </button>
     </div>
   </div>
@@ -43,20 +76,49 @@
         <span class="header-title">PIXEL CHAT</span>
       </div>
       <div class="header-right">
+        <div class="status-selector" id="statusSelector">
+          <button class="status-btn" id="statusBtn">
+            <span class="status-dot status-online" id="myStatusDot"></span>
+            <span id="myStatusText">ออนไลน์</span>
+          </button>
+          <div class="status-menu" id="statusMenu" style="display:none;">
+            <div class="status-option" data-status="online"><span class="status-dot status-online"></span> ออนไลน์</div>
+            <div class="status-option" data-status="away"><span class="status-dot status-away"></span> ไม่อยู่</div>
+            <div class="status-option" data-status="busy"><span class="status-dot status-busy"></span> ห้ามรบกวน</div>
+            <div class="status-option" data-status="invisible"><span class="status-dot status-invisible"></span> ซ่อนตัว</div>
+            <div class="status-msg-input">
+              <input type="text" id="statusMsgInput" maxlength="50" placeholder="ข้อความสถานะ..." />
+            </div>
+          </div>
+        </div>
         <div class="user-badge" id="userBadge"></div>
+        <button class="btn-logout" id="logoutBtn" title="ออกจากระบบ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
       </div>
     </header>
 
+    <div class="room-list-body">
     <div class="room-content">
       <div class="room-toolbar">
         <h2>ห้องแชท</h2>
-        <button id="createRoomBtn" class="btn-create">+ สร้างห้อง</button>
+        <button id="createRoomBtn" class="btn-create">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          สร้างห้อง
+        </button>
       </div>
 
       <div class="room-grid" id="roomGrid">
         <!-- rooms injected here -->
       </div>
-    </div>
+    </div><!-- room-content -->
+    <aside class="global-users-panel" id="globalUsersPanel">
+      <div class="gu-header">
+        <h3>ผู้ใช้ออนไลน์ <span id="globalUserCount">0</span></h3>
+      </div>
+      <div class="gu-list" id="globalUsersList"></div>
+    </aside>
+    </div><!-- room-list-body -->
 
     <!-- Create Room Modal -->
     <div id="createModal" class="modal-overlay" style="display:none;">
@@ -82,21 +144,95 @@
   <div id="chatroom" class="screen" style="display:none;">
     <header class="chat-header">
       <div class="header-left">
-        <button id="leaveBtn" class="btn-leave" title="ออกจากห้อง">✕</button>
+        <button id="leaveBtn" class="btn-leave" title="ออกจากห้อง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
         <span class="room-name-header" id="roomNameHeader">General Chat</span>
       </div>
       <div class="header-right">
-        <span id="onlineCount" class="online-badge">0 ออนไลน์</span>
-        <button id="toggleUsers" class="btn-icon" title="รายชื่อออนไลน์">👥</button>
+        <span id="onlineCount" class="online-badge">
+          <span class="online-dot"></span>
+          <span>0 ออนไลน์</span>
+        </span>
+        <button id="callBtn" class="btn-icon" title="Voice/Video Call">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
+        <button id="gameBtn" class="btn-icon" title="เกมทายคำ">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>
+        </button>
+        <button id="toggleUsers" class="btn-icon" title="รายชื่อออนไลน์">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </button>
       </div>
     </header>
+
+    <!-- Call notification bar -->
+    <div id="callBar" class="call-bar" style="display:none;">
+      <div class="call-bar-left">
+        <span class="call-pulse"></span>
+        <span class="call-bar-text">Call กำลังดำเนินอยู่</span>
+        <span id="callBarCount" class="call-bar-count">1 คน</span>
+      </div>
+      <button id="callJoinBtn" class="btn-call-join">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        เข้าร่วม Call
+      </button>
+    </div>
+
+    <!-- Call panel (video grid) -->
+    <div id="callPanel" class="call-panel" style="display:none;">
+      <div class="call-panel-header">
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.6 11.6a9 9 0 0 1-7.2 0M12 3a9 9 0 0 0 0 18M12 3v18"/><circle cx="12" cy="12" r="9"/></svg>
+          Video Call (<span id="callParticipantCount">0</span> คน)
+        </span>
+        <button id="callMinimize" class="reply-bar-close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+      <div id="videoGrid" class="video-grid"></div>
+      <div class="call-controls">
+        <button id="callMuteBtn" class="call-ctrl-btn" title="Mute/Unmute">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button id="callCameraBtn" class="call-ctrl-btn" title="Camera On/Off">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </button>
+        <button id="callLeaveBtn" class="call-ctrl-btn call-ctrl-leave" title="Leave Call">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
 
     <div class="chat-body">
       <div class="messages-area" id="messagesArea">
         <div class="empty-state" id="emptyState">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <p>ยังไม่มีข้อความ — เริ่มแชทเลย!</p>
         </div>
       </div>
+
+      <!-- Word Guess Game Panel -->
+      <aside class="game-panel" id="gamePanel" style="display:none;">
+        <div class="game-panel-header">
+          <h3>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>
+            ทายคำ
+          </h3>
+          <button id="gamePanelClose" class="reply-bar-close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="gameContent" class="game-content">
+          <div class="game-idle">
+            <p>ยังไม่มีเกม — กดเริ่มเลย!</p>
+            <button id="gameStartBtn" class="btn-play btn-sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+              เริ่มเกมใหม่
+            </button>
+          </div>
+        </div>
+      </aside>
 
       <aside class="users-panel" id="usersPanel">
         <h3>ผู้เล่นในห้อง (<span id="usersPanelCount">0</span>)</h3>
@@ -104,16 +240,104 @@
       </aside>
     </div>
 
+    <!-- Reply preview bar -->
+    <div id="replyBar" class="reply-bar" style="display:none;">
+      <div class="reply-bar-content">
+        <span class="reply-bar-label">ตอบกลับ</span>
+        <span class="reply-bar-name" id="replyBarName"></span>
+        <span class="reply-bar-text" id="replyBarText"></span>
+      </div>
+      <button id="replyBarClose" class="reply-bar-close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Mention autocomplete dropdown -->
+    <div id="mentionDropdown" class="mention-dropdown" style="display:none;"></div>
+
+    <div id="typingIndicator" class="typing-indicator"></div>
+
     <div class="chat-input-area">
+      <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" />
+      <button id="imageBtn" class="btn-image" title="ส่งรูปภาพ">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </button>
       <div class="input-wrapper">
-        <input type="text" id="msgInput" maxlength="500" placeholder="พิมพ์ข้อความ..." autocomplete="off" />
+        <input type="text" id="msgInput" maxlength="500" placeholder="พิมพ์ข้อความ... (@ชื่อ เพื่อ mention)" autocomplete="off" />
         <span class="char-remaining"><span id="charRemain">500</span></span>
       </div>
-      <button id="sendBtn" class="btn-send" disabled>ส่ง</button>
+      <button id="sendBtn" class="btn-send" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
     </div>
 
     <div id="reconnecting" class="reconnecting-overlay" style="display:none;">
       <p>กำลังเชื่อมต่อใหม่...</p>
+    </div>
+  </div>
+
+  <!-- Invitation Toast -->
+  <div id="inviteToast" class="invite-toast" style="display:none;">
+    <div class="invite-toast-content">
+      <div class="invite-toast-avatar" id="inviteToastAvatar"></div>
+      <div class="invite-toast-info">
+        <strong id="inviteToastFrom"></strong>
+        <span>เชิญคุณเข้าห้อง</span>
+        <strong id="inviteToastRoom"></strong>
+      </div>
+    </div>
+    <div class="invite-toast-actions">
+      <button class="btn-accept" id="inviteAccept">เข้าร่วม</button>
+      <button class="btn-decline" id="inviteDecline">ปฏิเสธ</button>
+    </div>
+  </div>
+
+  <!-- Private Call Incoming Modal -->
+  <div id="privateCallIncoming" class="private-call-modal" style="display:none;">
+    <div class="private-call-card">
+      <div class="call-ringing-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <div class="private-call-avatar" id="pcIncomingAvatar"></div>
+      <h3 id="pcIncomingName">กำลังโทรเข้า...</h3>
+      <div class="private-call-actions">
+        <button class="btn-call-accept" id="pcAcceptBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          รับสาย
+        </button>
+        <button class="btn-call-reject" id="pcRejectBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          ปฏิเสธ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Private Call Active Panel -->
+  <div id="privateCallPanel" class="private-call-panel" style="display:none;">
+    <div class="pc-header">
+      <span id="pcPeerName">1:1 Call</span>
+      <span id="pcTimer">00:00</span>
+    </div>
+    <div class="pc-videos">
+      <div class="pc-video-remote" id="pcRemoteVideo">
+        <video id="pcRemoteVideoEl" autoplay playsinline></video>
+        <div class="pc-remote-avatar" id="pcRemoteAvatar"></div>
+      </div>
+      <div class="pc-video-self" id="pcSelfVideo">
+        <video id="pcSelfVideoEl" autoplay playsinline muted></video>
+      </div>
+    </div>
+    <div class="pc-controls">
+      <button class="call-ctrl-btn" id="pcMuteBtn" title="Mute">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <button class="call-ctrl-btn" id="pcCameraBtn" title="Camera">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      </button>
+      <button class="call-ctrl-btn call-ctrl-leave" id="pcEndBtn" title="End Call">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+      </button>
     </div>
   </div>
 

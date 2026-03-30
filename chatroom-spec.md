@@ -28,7 +28,6 @@
 - ระบบ Login แบบถาวร (เน้น Temporary Session)
 - การเก็บประวัติย้อนหลังระยะยาว (Sliding window 50-100 ข้อความ)
 - ระบบ Admin/Moderation ที่ซับซ้อน (เวอร์ชันแรก)
-- Screen sharing (เวอร์ชันแรก)
 
 ---
 
@@ -87,9 +86,10 @@
 - มีห้อง Default: **General, Gaming, Chill**
 - **Create Room:** ผู้ใช้สามารถสร้างห้องเองได้ (ชื่อ + icon) และระบบจะทำลายห้องเมื่อไม่มีคนเหลือ
 
-#### 4.2.3 Mini-games (In-room Activities)
+#### 4.2.3 Mini-games & Activities (In-room)
 - **Word Guess:** เกมทายคำจากคำใบ้ (มีการจำกัดจำนวนครั้งทายและเฉลย)
 - **Pok Deng:** เกมไพ่ป็อกเด้ง รองรับผู้เล่นสูงสุด 5 คน (มีระบบ Dealer, จั่วไพ่, และสรุปผล)
+- **Poker Planning (Scrum):** เครื่องมือประมาณการ Story Points สำหรับทีม (0, 1, 2, 3, 5, 8, 13, 21, ?, ☕) รองรับ Blind Vote, Reveal, สถิติ (Average/Min/Max), และ Reset รอบใหม่
 
 ---
 
@@ -103,6 +103,19 @@
 #### 4.3.2 Private 1:1 Call
 - ระบบสั่นเตือน (Ringing) เมื่อมีคนโทรเข้า
 - รองรับ Voice และ Video Call แบบ P2P (WebRTC)
+- Timeout อัตโนมัติ (30 วินาที) หากผู้รับไม่ตอบรับ
+
+---
+
+### 4.4 Group & Private Call — Advanced Features
+
+| Feature | รายละเอียด |
+|---|---|
+| **Screen Sharing** | แชร์หน้าจอใน Group Call ผ่าน `getDisplayMedia()` (แสดง Cursor) |
+| **Camera Switching** | สลับกล้องหน้า/หลังบนมือถือ (facingMode: user/environment) |
+| **Participant Pinning** | ปักหมุดผู้เข้าร่วมให้แสดงภาพใหญ่ (Auto-pin เมื่อมี Screen Share) |
+| **Media Toggles** | Mute ไมค์ / ปิดกล้อง ระหว่างสนทนา |
+| **Room Invitation** | เชิญผู้ใช้เข้าห้องจาก Global Users list |
 
 ---
 
@@ -154,11 +167,13 @@
 |---|---|
 | **Room** | `join-room`, `leave-room`, `create-room`, `room-list`, `online-users` |
 | **Chat** | `send-message`, `new-message`, `send-image`, `typing`, `message-history` |
-| **DM** | `dm:send`, `dm:message`, `dm:history`, `dm:typing` |
-| **Call** | `call:start`, `call:join`, `call:offer`, `call:answer`, `call:ice-candidate` |
-| **Private Call** | `private-call:initiate`, `private-call:incoming`, `private-call:accept` |
-| **Games** | `game-start`, `game-guess`, `pokdeng-create`, `pokdeng-deal`, `pokdeng-draw` |
+| **DM** | `dm:send`, `dm:send-image`, `dm:message`, `dm:history`, `dm:typing` |
+| **Call** | `call:start`, `call:join`, `call:leave`, `call:offer`, `call:answer`, `call:ice-candidate`, `call:toggle-media`, `call:toggle-screen`, `call:get-state` |
+| **Private Call** | `private-call:initiate`, `private-call:accept`, `private-call:reject`, `private-call:end`, `private-call:offer`, `private-call:answer`, `private-call:ice-candidate`, `private-call:toggle-media` |
+| **Games** | `game-start`, `game-guess`, `game-get-state`, `pokdeng-create`, `pokdeng-join`, `pokdeng-deal`, `pokdeng-draw`, `pokdeng-stand`, `pokdeng-get-state` |
+| **Poker Planning** | `poker:start`, `poker:vote`, `poker:reveal`, `poker:reset`, `poker:get-state` |
+| **Social** | `invite-to-room`, `room-invitation` |
 
 ---
 
-*Spec version 1.3 (Updated) — วันที่ 30 มีนาคม 2569 (ซิงค์ข้อมูลกับฟีเจอร์ปัจจุบันในระบบ)*
+*Spec version 1.4 (Updated) — วันที่ 30 มีนาคม 2569 (ซิงค์ข้อมูลกับฟีเจอร์ปัจจุบันในระบบ — เพิ่ม Screen Sharing, Camera Switch, Pin Participant, Poker Planning, Room Invitation)*

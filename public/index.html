@@ -386,58 +386,104 @@
     </div>
   </div>
 
-  <!-- Private Call Incoming Modal -->
-  <div id="privateCallIncoming" class="private-call-modal" style="display:none;">
-    <div class="private-call-card">
-      <div class="call-ringing-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+  <!-- Private Call Incoming Modal (FaceTime-style) -->
+  <div id="privateCallIncoming" class="ft-incoming" style="display:none;">
+    <div class="ft-incoming-bg"></div>
+    <div class="ft-incoming-content">
+      <div class="ft-incoming-top">
+        <div class="ft-avatar-rings">
+          <div class="ft-ring ft-ring-1"></div>
+          <div class="ft-ring ft-ring-2"></div>
+          <div class="ft-ring ft-ring-3"></div>
+          <div class="ft-avatar-wrap" id="pcIncomingAvatar"></div>
+        </div>
+        <div class="ft-caller-info">
+          <h2 id="pcIncomingName">กำลังโทรเข้า...</h2>
+          <p class="ft-call-label">Pixel Chat Video</p>
+        </div>
       </div>
-      <div class="private-call-avatar" id="pcIncomingAvatar"></div>
-      <h3 id="pcIncomingName">กำลังโทรเข้า...</h3>
-      <div class="private-call-actions">
-        <button class="btn-call-accept" id="pcAcceptBtn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          รับสาย
-        </button>
-        <button class="btn-call-reject" id="pcRejectBtn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          ปฏิเสธ
-        </button>
+      <div class="ft-incoming-bottom">
+        <div class="ft-action-group">
+          <button class="ft-action-btn ft-decline" id="pcRejectBtn">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+          </button>
+          <span class="ft-action-label">ปฏิเสธ</span>
+        </div>
+        <div class="ft-action-group">
+          <button class="ft-action-btn ft-accept" id="pcAcceptBtn">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </button>
+          <span class="ft-action-label">รับสาย</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Private Call Active Panel -->
-  <div id="privateCallPanel" class="private-call-panel" style="display:none;">
-    <div class="pc-header">
-      <div class="pc-header-left">
-        <span id="pcPeerName">1:1 Call</span>
-        <span id="pcTimer">00:00</span>
+  <!-- Private Call Outgoing / Ringing (FaceTime-style) -->
+  <div id="privateCallRinging" class="ft-ringing" style="display:none;">
+    <div class="ft-incoming-bg"></div>
+    <div class="ft-incoming-content">
+      <div class="ft-incoming-top">
+        <div class="ft-avatar-rings">
+          <div class="ft-ring ft-ring-1"></div>
+          <div class="ft-ring ft-ring-2"></div>
+          <div class="ft-ring ft-ring-3"></div>
+          <div class="ft-avatar-wrap" id="pcRingingAvatar"></div>
+        </div>
+        <div class="ft-caller-info">
+          <h2 id="pcRingingName">กำลังโทร...</h2>
+          <p class="ft-call-label ft-calling-dots">กำลังเชื่อมต่อ</p>
+        </div>
       </div>
-      <div class="pc-header-right">
-        <button id="pcMinimizeBtn" class="pc-minimize-btn" title="ย่อ/ขยาย">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
+      <div class="ft-incoming-bottom">
+        <div class="ft-action-group">
+          <button class="ft-action-btn ft-decline" id="pcRingingCancelBtn">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+          </button>
+          <span class="ft-action-label">วางสาย</span>
+        </div>
       </div>
     </div>
-    <div class="pc-videos">
-      <div class="pc-video-remote" id="pcRemoteVideo">
+  </div>
+
+  <!-- Private Call Active Panel (FaceTime-style fullscreen) -->
+  <div id="privateCallPanel" class="ft-call-active" style="display:none;">
+    <div class="ft-call-topbar">
+      <div class="ft-call-topbar-info">
+        <span class="ft-call-encrypted">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <span id="pcPeerName" class="ft-peer-name">1:1 Call</span>
+        <span id="pcTimer" class="ft-timer">00:00</span>
+      </div>
+      <button id="pcMinimizeBtn" class="ft-pip-btn" title="ย่อเป็น PiP">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="14" rx="2"/><rect x="12" y="10" width="10" height="10" rx="1" fill="currentColor" opacity="0.3"/></svg>
+      </button>
+    </div>
+    <div class="ft-call-videos">
+      <div class="ft-remote-video" id="pcRemoteVideo">
         <video id="pcRemoteVideoEl" autoplay playsinline></video>
         <div class="pc-remote-avatar" id="pcRemoteAvatar"></div>
       </div>
-      <div class="pc-video-self" id="pcSelfVideo">
+      <div class="ft-self-video" id="pcSelfVideo">
         <video id="pcSelfVideoEl" autoplay playsinline muted></video>
       </div>
     </div>
-    <div class="pc-controls">
-      <button class="call-ctrl-btn" id="pcMuteBtn" title="Mute">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    <div class="ft-call-controls">
+      <button class="ft-ctrl-btn" id="pcMuteBtn" title="Mute">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span class="ft-ctrl-label">ไมค์</span>
       </button>
-      <button class="call-ctrl-btn" id="pcCameraBtn" title="Camera">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      <button class="ft-ctrl-btn" id="pcCameraBtn" title="Camera">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        <span class="ft-ctrl-label">กล้อง</span>
       </button>
-      <button class="call-ctrl-btn call-ctrl-leave" id="pcEndBtn" title="End Call">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+      <button class="ft-ctrl-btn ft-ctrl-flip call-ctrl-mobile-only" id="pcFlipCameraBtn" title="สลับกล้อง">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><polygon points="23 7 16 12 23 17 23 7"/><path d="M16 3l3 3-3 3"/><path d="M19 6H12"/></svg>
+        <span class="ft-ctrl-label">สลับ</span>
+      </button>
+      <button class="ft-ctrl-btn ft-ctrl-end" id="pcEndBtn" title="End Call">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
       </button>
     </div>
   </div>

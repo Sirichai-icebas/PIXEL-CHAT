@@ -45,13 +45,16 @@
 | **Private 1:1 Call** | ✅ **DONE** | Private calling with Ringing notification. |
 | **Media Toggles** | ✅ **DONE** | Mute mic and toggle camera during calls. |
 | **Call Quality Monitor** | 🌟 **NEW** | Visual indicator for peer connection strength. |
-| **Screen Sharing** | ⏳ **BACKLOG** | Desktop screen sharing capability. |
+| **Screen Sharing** | ✅ **DONE** | Desktop screen sharing via `getDisplayMedia()` with cursor, auto-pin on share. |
+| **Camera Switching** | ✅ **DONE** | Toggle front/back camera on mobile (facingMode). |
+| **Participant Pinning** | ✅ **DONE** | Pin participant to spotlight view, auto-pin on screen share. |
 
 ### 4. Epic: Interactive & Games (กิจกรรม)
 | Feature | State | Description |
 |---|---|---|
 | **Word Guess Game** | ✅ **DONE** | Hint-based word guessing with scoring. |
 | **Pok Deng Card Game** | ✅ **DONE** | Card game (Dealer vs Players) with result summary. |
+| **Poker Planning (Scrum)** | ✅ **DONE** | Story point voting (0-21, ?, ☕), blind vote, reveal with stats, reset. |
 | **Game Spectator Mode** | 🌟 **NEW** | Allow non-players to watch and chat during games. |
 | **Global Explore Page** | 🌟 **NEW** | Dashboard for trending activities in different rooms. |
 
@@ -80,7 +83,7 @@
 ### Phase 3: Social Growth & Hooks
 - [ ] **Game Spectator Mode:** Increase engagement for mini-games.
 - [ ] **Global Explore Page:** Help users find active communities easily.
-- [ ] **Screen Sharing:** Enhance calling utility for productivity or shared viewing.
+- [x] **Screen Sharing:** ~~Enhance calling utility for productivity or shared viewing.~~ ✅ Done
 
 ---
 

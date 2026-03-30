@@ -161,6 +161,10 @@
   const pcIncomingName = document.getElementById('pcIncomingName');
   const pcAcceptBtn = document.getElementById('pcAcceptBtn');
   const pcRejectBtn = document.getElementById('pcRejectBtn');
+  const privateCallRinging = document.getElementById('privateCallRinging');
+  const pcRingingAvatar = document.getElementById('pcRingingAvatar');
+  const pcRingingName = document.getElementById('pcRingingName');
+  const pcRingingCancelBtn = document.getElementById('pcRingingCancelBtn');
   const privateCallPanel = document.getElementById('privateCallPanel');
   const pcPeerName = document.getElementById('pcPeerName');
   const pcTimer = document.getElementById('pcTimer');
@@ -170,6 +174,8 @@
   const pcMuteBtn = document.getElementById('pcMuteBtn');
   const pcCameraBtn = document.getElementById('pcCameraBtn');
   const pcEndBtn = document.getElementById('pcEndBtn');
+  const pcFlipCameraBtn = document.getElementById('pcFlipCameraBtn');
+  const pcMinimizeBtn = document.getElementById('pcMinimizeBtn');
   // DM DOM refs
   const dmPanel = document.getElementById('dmPanel');
   const dmMessages = document.getElementById('dmMessages');
@@ -231,7 +237,6 @@
   const callCameraBtn = document.getElementById('callCameraBtn');
   const callLeaveBtn = document.getElementById('callLeaveBtn');
   const callMinimize = document.getElementById('callMinimize');
-  const pcMinimizeBtn = document.getElementById('pcMinimizeBtn');
   const callSwitchCameraBtn = document.getElementById('callSwitchCameraBtn');
 
   const callScreenShareBtn = document.getElementById('callScreenShareBtn');
@@ -688,13 +693,20 @@
 
     socket.on('private-call:ringing', (data) => {
       privateCallId = data.callId;
+      // Show outgoing call (ringing) screen
+      if (data.targetUser) {
+        pcRingingAvatar.innerHTML = renderAvatar({ avatarId: data.targetUser.avatarId, profilePhoto: data.targetUser.profilePhoto });
+        pcRingingName.textContent = data.targetUser.displayName;
+      }
+      privateCallRinging.style.display = 'flex';
     });
 
     socket.on('private-call:start', async (data) => {
       privateCallIncoming.style.display = 'none';
+      privateCallRinging.style.display = 'none';
       privateCallId = data.callId;
       pcPeerName.textContent = data.peer.displayName;
-      pcRemoteAvatar.innerHTML = renderAvatar({ avatarId: data.peer.avatarId, profilePhoto: data.peer.profilePhoto });
+      pcRemoteAvatar.innerHTML = renderAvatar({ avatarId: data.peer.avatarId, profilePhoto: data.peer.profilePhoto }, 80);
       privateCallPanel.style.display = 'flex';
       privateCallPanel.classList.remove('minimized');
 
@@ -750,7 +762,6 @@
     });
 
     socket.on('private-call:rejected', () => {
-      alert('สายถูกปฏิเสธ');
       cleanupPrivateCall();
     });
 
@@ -759,7 +770,6 @@
     });
 
     socket.on('private-call:timeout', () => {
-      privateCallIncoming.style.display = 'none';
       cleanupPrivateCall();
     });
 
@@ -1718,9 +1728,6 @@
     callPanel.classList.toggle('minimized');
   });
 
-  pcMinimizeBtn.addEventListener('click', () => {
-    privateCallPanel.classList.toggle('minimized');
-  });
   // ===== SWITCH CAMERA (mobile front/back) =====
   callSwitchCameraBtn.addEventListener('click', async () => {
     if (!localStream || isCameraOff || isScreenSharing) return;
@@ -2198,6 +2205,48 @@
 
   pcEndBtn.addEventListener('click', () => endPrivateCall());
 
+  // Ringing cancel
+  pcRingingCancelBtn.addEventListener('click', () => endPrivateCall());
+
+  // PiP / Minimize toggle
+  pcMinimizeBtn.addEventListener('click', () => {
+    privateCallPanel.classList.toggle('minimized');
+  });
+  // Click minimized panel to restore
+  privateCallPanel.addEventListener('click', (e) => {
+    if (privateCallPanel.classList.contains('minimized') && e.target === privateCallPanel) {
+      privateCallPanel.classList.remove('minimized');
+    }
+  });
+
+  // Flip camera (private call)
+  if (pcFlipCameraBtn) {
+    let pcUsingFront = true;
+    pcFlipCameraBtn.addEventListener('click', async () => {
+      if (!pcLocalStream) return;
+      pcUsingFront = !pcUsingFront;
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: pcUsingFront ? 'user' : 'environment' },
+        audio: true
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      // Replace track in peer connection
+      if (privateCallPeer) {
+        const sender = privateCallPeer.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender) await sender.replaceTrack(newVideoTrack);
+      }
+      // Replace track in local stream
+      const oldVideoTrack = pcLocalStream.getVideoTracks()[0];
+      if (oldVideoTrack) oldVideoTrack.stop();
+      pcLocalStream.removeTrack(oldVideoTrack);
+      pcLocalStream.addTrack(newVideoTrack);
+      pcSelfVideoEl.srcObject = pcLocalStream;
+      // Mirror for front camera
+      const selfVideo = document.getElementById('pcSelfVideo');
+      selfVideo.style.transform = pcUsingFront ? '' : 'scaleX(-1)';
+    });
+  }
+
   pcMuteBtn.addEventListener('click', () => {
     if (!pcLocalStream) return;
     pcIsMuted = !pcIsMuted;
@@ -2211,7 +2260,8 @@
     pcIsCameraOff = !pcIsCameraOff;
     pcLocalStream.getVideoTracks().forEach(t => { t.enabled = !pcIsCameraOff; });
     pcCameraBtn.classList.toggle('active', pcIsCameraOff);
-    document.getElementById('pcSelfVideo').classList.toggle('camera-off', pcIsCameraOff);
+    const selfVid = document.getElementById('pcSelfVideo');
+    if (selfVid) selfVid.classList.toggle('camera-off', pcIsCameraOff);
     if (socket) socket.emit('private-call:toggle-media', { isMuted: pcIsMuted, isCameraOff: pcIsCameraOff });
   });
 
@@ -2228,8 +2278,11 @@
     pcIsMuted = false; pcIsCameraOff = false;
     privateCallPanel.style.display = 'none';
     privateCallIncoming.style.display = 'none';
+    privateCallRinging.style.display = 'none';
     pcSelfVideoEl.srcObject = null;
     pcRemoteVideoEl.srcObject = null;
+    pcMuteBtn.classList.remove('active');
+    pcCameraBtn.classList.remove('active');
     stopPcTimer();
   }
 

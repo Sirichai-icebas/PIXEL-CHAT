@@ -545,6 +545,17 @@
       renderGameState(state);
     });
 
+    // Poker planning state
+    socket.on('poker:state', (state) => {
+      if (state && gamePanel.style.display === 'none') {
+        gamePanel.style.display = 'flex';
+        // Switch to poker tab
+        gameTabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === 'poker'));
+        gameTabContents.forEach(c => c.style.display = c.getAttribute('data-tab') === 'poker' ? 'flex' : 'none');
+      }
+      renderPokerState(state);
+    });
+
     // Typing indicator
     socket.on('user-typing', (data) => {
       if (data.userId === userId) return;
@@ -1309,6 +1320,159 @@
         if (socket) socket.emit('game-start');
       });
     }
+  }
+
+  // ===== GAME TABS =====
+  const gameTabs = document.querySelectorAll('.game-tab');
+  const gameTabContents = document.querySelectorAll('.game-tab-content');
+  gameTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      gameTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.getAttribute('data-tab');
+      gameTabContents.forEach(c => {
+        c.style.display = c.getAttribute('data-tab') === target ? 'flex' : 'none';
+      });
+      if (target === 'poker' && socket) socket.emit('poker:get-state');
+    });
+  });
+
+  // ===== POKER PLANNING (SCRUM) =====
+  const pokerContent = document.getElementById('pokerContent');
+  const pokerIdle = document.getElementById('pokerIdle');
+  const pokerSession = document.getElementById('pokerSession');
+  const pokerTopicInput = document.getElementById('pokerTopicInput');
+  const pokerStartBtn = document.getElementById('pokerStartBtn');
+
+  const POKER_VALUES = ['0', '1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+  let pokerMyVote = null;
+
+  pokerStartBtn.addEventListener('click', () => {
+    if (!socket) return;
+    socket.emit('poker:start', { topic: pokerTopicInput.value.trim() });
+    pokerTopicInput.value = '';
+  });
+
+  pokerTopicInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); pokerStartBtn.click(); }
+  });
+
+  function renderPokerState(state) {
+    if (!state) {
+      pokerIdle.style.display = 'flex';
+      pokerSession.style.display = 'none';
+      return;
+    }
+    pokerIdle.style.display = 'none';
+    pokerSession.style.display = 'flex';
+    pokerMyVote = state.myVote;
+
+    let html = '';
+
+    // Topic header
+    html += `<div class="poker-topic">
+      <span class="poker-topic-label">หัวข้อ</span>
+      ${esc(state.topic)}
+    </div>`;
+
+    // Vote status
+    html += `<div class="poker-vote-status">
+      <strong>${state.voteCount}</strong> / ${state.totalPlayers} คนโหวตแล้ว
+    </div>`;
+
+    // Card selection (only before reveal)
+    if (!state.revealed) {
+      html += '<div class="poker-cards">';
+      POKER_VALUES.forEach(val => {
+        const selected = state.myVote === val ? ' selected' : '';
+        html += `<button class="poker-card-btn${selected}" data-vote="${esc(val)}">${esc(val)}</button>`;
+      });
+      html += '</div>';
+    }
+
+    // Voters
+    html += '<div class="poker-voters">';
+    // Sort: voted first, then by name
+    const sorted = [...state.voters].sort((a, b) => {
+      if (a.hasVoted && !b.hasVoted) return -1;
+      if (!a.hasVoted && b.hasVoted) return 1;
+      return 0;
+    });
+    sorted.forEach((v, i) => {
+      const avatarHtml = renderAvatar({ avatarId: v.avatarId, profilePhoto: v.profilePhoto }, 'small');
+      let cardHtml = '';
+      if (!v.hasVoted) {
+        cardHtml = `<div class="poker-voter-card waiting">⏳</div>`;
+      } else if (!state.revealed) {
+        cardHtml = `<div class="poker-voter-card voted">
+          <div class="poker-card-flip">
+            <div class="poker-card-back"></div>
+            <div class="poker-card-front"></div>
+          </div>
+        </div>`;
+      } else {
+        // Revealed — flip animation with staggered delay
+        cardHtml = `<div class="poker-voter-card poker-reveal-anim" style="animation-delay:${i * 0.15}s">
+          <div class="poker-card-flip flipped" style="transition-delay:${i * 0.15}s">
+            <div class="poker-card-back"></div>
+            <div class="poker-card-front">${esc(v.vote)}</div>
+          </div>
+        </div>`;
+      }
+      html += `<div class="poker-voter">
+        <div class="poker-voter-avatar">${avatarHtml}</div>
+        <span class="poker-voter-name">${esc(v.displayName)}</span>
+        ${cardHtml}
+      </div>`;
+    });
+    html += '</div>';
+
+    // Stats (after reveal)
+    if (state.revealed && state.stats) {
+      html += `<div class="poker-stats">
+        <div class="poker-stat"><span class="poker-stat-value">${state.stats.avg}</span><span class="poker-stat-label">ค่าเฉลี่ย</span></div>
+        <div class="poker-stat"><span class="poker-stat-value">${state.stats.min}</span><span class="poker-stat-label">ต่ำสุด</span></div>
+        <div class="poker-stat"><span class="poker-stat-value">${state.stats.max}</span><span class="poker-stat-label">สูงสุด</span></div>
+      </div>`;
+    }
+
+    // Actions
+    html += '<div class="poker-actions">';
+    if (state.revealed) {
+      html += `<button class="poker-btn-reset" id="pokerResetBtn">โหวตใหม่</button>`;
+      html += `<button class="poker-btn-new" id="pokerNewBtn">เรื่องใหม่</button>`;
+    } else {
+      html += `<button class="poker-btn-reveal" id="pokerRevealBtn">เปิดการ์ด 🎉</button>`;
+    }
+    html += '</div>';
+
+    pokerSession.innerHTML = html;
+
+    // Bind card vote buttons
+    pokerSession.querySelectorAll('.poker-card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!socket) return;
+        const vote = btn.getAttribute('data-vote');
+        socket.emit('poker:vote', { vote });
+        // Animate selection
+        pokerSession.querySelectorAll('.poker-card-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+
+    // Bind action buttons
+    const revealBtn = document.getElementById('pokerRevealBtn');
+    if (revealBtn) revealBtn.addEventListener('click', () => { if (socket) socket.emit('poker:reveal'); });
+
+    const resetBtn = document.getElementById('pokerResetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', () => { if (socket) socket.emit('poker:reset'); });
+
+    const newBtn = document.getElementById('pokerNewBtn');
+    if (newBtn) newBtn.addEventListener('click', () => {
+      pokerIdle.style.display = 'flex';
+      pokerSession.style.display = 'none';
+      pokerTopicInput.focus();
+    });
   }
 
   // ===== VOICE/VIDEO CALL =====

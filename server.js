@@ -313,6 +313,9 @@ io.on('connection', (socket) => {
   // Private 1:1 Call
   handlePrivateCallEvents(socket);
 
+  // Poker Planning (Scrum)
+  handlePokerEvents(socket);
+
   // Invite to room
   socket.on('invite-to-room', (data) => {
     const user = socketUser.get(socket.id);
@@ -1232,6 +1235,185 @@ setInterval(() => {
 
   if (changed) broadcastGlobalUsers();
 }, 30000);
+
+// ===== POKER PLANNING (SCRUM) =====
+const roomPokerSessions = new Map(); // roomId -> { topic, votes: Map<socketId, { displayName, avatarId, profilePhoto, vote }>, revealed, startedBy, startedAt }
+
+function handlePokerEvents(socket) {
+  // Start a new poker session
+  socket.on('poker:start', (data) => {
+    const user = socketUser.get(socket.id);
+    const roomId = socketRoom.get(socket.id);
+    if (!user || !roomId) return;
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    const topic = (data.topic || '').trim().slice(0, 100) || 'Story Point Estimation';
+    const session = {
+      topic,
+      votes: new Map(),
+      revealed: false,
+      startedBy: user.displayName,
+      startedAt: new Date().toISOString(),
+    };
+    roomPokerSessions.set(roomId, session);
+
+    const sysMsg = {
+      id: uuidv4(), userId: 'system', displayName: 'System', avatarId: '',
+      content: `🃏 ${user.displayName} เริ่ม Poker Planning! หัวข้อ: "${topic}"`,
+      timestamp: new Date().toISOString(), type: 'system',
+    };
+    room.messages.push(sysMsg);
+    if (room.messages.length > MAX_MESSAGES) room.messages.shift();
+    io.to(roomId).emit('new-message', sysMsg);
+    broadcastPokerState(roomId);
+  });
+
+  // Vote
+  socket.on('poker:vote', (data) => {
+    const user = socketUser.get(socket.id);
+    const roomId = socketRoom.get(socket.id);
+    if (!user || !roomId) return;
+    const session = roomPokerSessions.get(roomId);
+    if (!session || session.revealed) return;
+
+    const validVotes = ['0', '1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+    const vote = String(data.vote || '');
+    if (!validVotes.includes(vote)) return;
+
+    session.votes.set(socket.id, {
+      displayName: user.displayName,
+      avatarId: user.avatarId,
+      profilePhoto: user.profilePhoto,
+      vote,
+    });
+    broadcastPokerState(roomId);
+  });
+
+  // Reveal votes
+  socket.on('poker:reveal', () => {
+    const user = socketUser.get(socket.id);
+    const roomId = socketRoom.get(socket.id);
+    if (!user || !roomId) return;
+    const session = roomPokerSessions.get(roomId);
+    if (!session || session.revealed) return;
+
+    session.revealed = true;
+
+    // Calculate stats
+    const numericVotes = [];
+    for (const [, v] of session.votes) {
+      const n = parseFloat(v.vote);
+      if (!isNaN(n)) numericVotes.push(n);
+    }
+    const avg = numericVotes.length > 0 ? (numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length).toFixed(1) : '-';
+
+    const room = rooms.get(roomId);
+    if (room) {
+      let voteSummary = [...session.votes.values()].map(v => `${v.displayName}: ${v.vote}`).join(', ');
+      const sysMsg = {
+        id: uuidv4(), userId: 'system', displayName: 'System', avatarId: '',
+        content: `🎯 Poker Planning ผลโหวต "${session.topic}"\n${voteSummary}\n📊 ค่าเฉลี่ย: ${avg} point${numericVotes.length > 0 ? 's' : ''}`,
+        timestamp: new Date().toISOString(), type: 'system',
+      };
+      room.messages.push(sysMsg);
+      if (room.messages.length > MAX_MESSAGES) room.messages.shift();
+      io.to(roomId).emit('new-message', sysMsg);
+    }
+    broadcastPokerState(roomId);
+  });
+
+  // Reset (new round with same topic)
+  socket.on('poker:reset', () => {
+    const user = socketUser.get(socket.id);
+    const roomId = socketRoom.get(socket.id);
+    if (!user || !roomId) return;
+    const session = roomPokerSessions.get(roomId);
+    if (!session) return;
+
+    session.votes.clear();
+    session.revealed = false;
+    broadcastPokerState(roomId);
+  });
+
+  // Get current state
+  socket.on('poker:get-state', () => {
+    const roomId = socketRoom.get(socket.id);
+    if (!roomId) return;
+    socket.emit('poker:state', getPokerPublicState(roomId, socket.id));
+  });
+}
+
+function getPokerPublicState(roomId, viewerSocketId) {
+  const session = roomPokerSessions.get(roomId);
+  if (!session) return null;
+
+  const voters = [];
+  for (const [sid, v] of session.votes) {
+    voters.push({
+      socketId: sid,
+      displayName: v.displayName,
+      avatarId: v.avatarId,
+      profilePhoto: v.profilePhoto,
+      vote: session.revealed ? v.vote : '✓', // Hide vote until revealed
+      hasVoted: true,
+    });
+  }
+
+  // Include room users who haven't voted yet
+  const room = rooms.get(roomId);
+  if (room) {
+    for (const [sid, u] of room.users) {
+      if (!session.votes.has(sid)) {
+        voters.push({
+          socketId: sid,
+          displayName: u.displayName,
+          avatarId: u.avatarId,
+          profilePhoto: u.profilePhoto,
+          vote: null,
+          hasVoted: false,
+        });
+      }
+    }
+  }
+
+  // Stats (only after reveal)
+  let stats = null;
+  if (session.revealed) {
+    const numericVotes = [];
+    for (const [, v] of session.votes) {
+      const n = parseFloat(v.vote);
+      if (!isNaN(n)) numericVotes.push(n);
+    }
+    if (numericVotes.length > 0) {
+      stats = {
+        avg: (numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length).toFixed(1),
+        min: Math.min(...numericVotes),
+        max: Math.max(...numericVotes),
+      };
+    }
+  }
+
+  return {
+    topic: session.topic,
+    revealed: session.revealed,
+    startedBy: session.startedBy,
+    voteCount: session.votes.size,
+    totalPlayers: room ? room.users.size : 0,
+    voters,
+    stats,
+    myVote: session.votes.get(viewerSocketId)?.vote || null,
+  };
+}
+
+function broadcastPokerState(roomId) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+  for (const [sid] of room.users) {
+    const s = io.sockets.sockets.get(sid);
+    if (s) s.emit('poker:state', getPokerPublicState(roomId, sid));
+  }
+}
 
 // ===== PRIVATE 1:1 CALL =====
 function handlePrivateCallEvents(socket) {

@@ -213,18 +213,23 @@
         </div>
       </div>
 
-      <!-- Word Guess Game Panel -->
+      <!-- Game Panel (Tabbed) -->
       <aside class="game-panel" id="gamePanel" style="display:none;">
         <div class="game-panel-header">
           <h3>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>
-            ทายคำ
+            เกม
           </h3>
           <button id="gamePanelClose" class="reply-bar-close">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        <div id="gameContent" class="game-content">
+        <div class="game-tabs">
+          <button class="game-tab active" data-tab="wordguess">ทายคำ</button>
+          <button class="game-tab" data-tab="poker">Poker Point</button>
+        </div>
+        <!-- Word Guess Tab -->
+        <div id="gameContent" class="game-content game-tab-content" data-tab="wordguess">
           <div class="game-idle">
             <p>ยังไม่มีเกม — กดเริ่มเลย!</p>
             <button id="gameStartBtn" class="btn-play btn-sm">
@@ -232,6 +237,22 @@
               เริ่มเกมใหม่
             </button>
           </div>
+        </div>
+        <!-- Poker Planning Tab -->
+        <div id="pokerContent" class="game-content game-tab-content" data-tab="poker" style="display:none;">
+          <div class="poker-idle" id="pokerIdle">
+            <div class="poker-icon">🎯</div>
+            <p>Scrum Poker Planning</p>
+            <p class="poker-desc">โหวต Story Point ร่วมกับทีม</p>
+            <div class="poker-start-form">
+              <input type="text" id="pokerTopicInput" maxlength="100" placeholder="หัวข้อ (เช่น User Story #123)" autocomplete="off" />
+              <button id="pokerStartBtn" class="btn-play btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                เริ่มโหวต
+              </button>
+            </div>
+          </div>
+          <div class="poker-session" id="pokerSession" style="display:none;"></div>
         </div>
       </aside>
 

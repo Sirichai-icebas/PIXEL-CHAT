@@ -235,7 +235,9 @@
   const callSwitchCameraBtn = document.getElementById('callSwitchCameraBtn');
 
   const callScreenShareBtn = document.getElementById('callScreenShareBtn');
-
+  const chatTabsMobile = document.getElementById('chatTabsMobile');
+  const chatTabBtns = document.querySelectorAll('.chat-tab-btn');
+  const membersTabCount = document.getElementById('membersTabCount');
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
@@ -1214,6 +1216,7 @@
   function renderOnlineUsers(users) {
     onlineCount.textContent = `${users.length} ออนไลน์`;
     usersPanelCount.textContent = users.length;
+    if (membersTabCount) membersTabCount.textContent = users.length;
     usersList.innerHTML = '';
     users.forEach((u) => {
       const li = document.createElement('li');
@@ -1232,6 +1235,20 @@
     usersPanel.classList.toggle('hidden');
     usersPanel.classList.toggle('show');
   });
+
+  if (chatTabBtns) {
+    chatTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        chatTabBtns.forEach(b => b.classList.toggle('active', b === btn));
+        if (tab === 'members') {
+          usersPanel.classList.add('active');
+        } else {
+          usersPanel.classList.remove('active');
+        }
+      });
+    });
+  }
   if (window.innerWidth <= 640) {
     usersPanel.classList.add('hidden');
   }

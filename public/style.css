@@ -1473,6 +1473,19 @@ body {
   gap: 12px; padding: 10px; background: #1a1a2e;
 }
 
+/* Mobile Tabs for Chat/Members */
+.chat-tabs-mobile { display: none; background: #fff; border-bottom: 1px solid #eee; z-index: 10; }
+.chat-tab-btn {
+  flex: 1; padding: 14px; border: none; background: none;
+  font-family: var(--font); font-size: 0.9rem; font-weight: 700; color: #888;
+  cursor: pointer; position: relative; transition: all 0.2s;
+}
+.chat-tab-btn.active { color: var(--pink); }
+.chat-tab-btn.active::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--pink); border-radius: 3px 3px 0 0;
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -1701,7 +1714,7 @@ body {
   .gu-btn { width: 32px; height: 32px; }
 
   /* === CHATROOM === */
-  #chatroom { height: 100vh; height: 100dvh; }
+  #chatroom { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
 
   .chat-header {
     padding: 8px 10px;
@@ -1709,6 +1722,35 @@ body {
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     background: rgba(255,255,255,0.88);
   }
+  
+  /* Mobile Tabs Logic */
+  .chat-tabs-mobile { display: flex; border-bottom: 1px solid #eee; background: #fff; flex-shrink: 0; }
+  #toggleUsers { display: none; }
+  
+  .chat-body {
+    flex-direction: column; flex: 1; overflow: hidden; position: relative;
+    display: flex; background: #f0f0f0;
+  }
+  
+  .messages-area {
+    width: 100%; flex: 1; display: flex !important;
+    background: #f8f8f8;
+  }
+  
+  .users-panel {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    width: 100% !important; height: 100% !important; z-index: 5;
+    background: #fff !important; transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex !important; flex-direction: column;
+    box-shadow: none !important; border-radius: 0 !important;
+  }
+  
+  .users-panel.active { transform: translateX(0); }
+  
+  /* When members tab is active, we might want to hide messages area or just cover it */
+  /* If we use translateX(0) for users-panel, it covers messages-area */
+
   .btn-leave { width: 32px; height: 32px; }
   .room-name-header { font-size: 0.9rem; margin-left: 6px; }
   .online-badge { padding: 3px 8px; font-size: 0.7rem; }

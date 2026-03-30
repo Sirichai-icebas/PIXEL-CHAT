@@ -694,6 +694,195 @@ body {
   color: var(--pink); margin: 4px 0;
 }
 
+/* ===== POK DENG CARD GAME ===== */
+.pd-idle {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; flex: 1; text-align: center;
+  padding: 20px 0;
+}
+.pd-logo { font-size: 3rem; animation: pdFloat 3s ease-in-out infinite; }
+@keyframes pdFloat {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-8px) rotate(5deg); }
+}
+.pd-title { margin: 0; font-weight: 800; font-size: 1.1rem; color: var(--text); }
+.pd-desc { margin: 0; font-size: 0.8rem; color: var(--text-dim); }
+.pd-session { display: flex; flex-direction: column; gap: 10px; }
+
+/* Phase banner */
+.pd-phase {
+  text-align: center; padding: 8px 12px;
+  border-radius: var(--radius); font-weight: 700;
+  font-size: 0.82rem;
+}
+.pd-phase.waiting { background: #FFF3CD; color: #856404; }
+.pd-phase.playing { background: #D4EDDA; color: #155724; }
+.pd-phase.finished { background: var(--pink-light); color: var(--pink); }
+
+/* Playing Card */
+.pd-card {
+  display: inline-flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  width: 52px; height: 74px;
+  border-radius: 6px;
+  font-family: 'Georgia', serif;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+.pd-card.face-up {
+  background: #fff;
+  border: 1.5px solid #d4d4d8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.8);
+}
+.pd-card.face-down {
+  background: linear-gradient(135deg, #1a3a5c 0%, #0f2440 50%, #1a3a5c 100%);
+  border: 1.5px solid #0a1929;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.pd-card.face-down::before {
+  content: '';
+  position: absolute; inset: 3px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 3px,
+    rgba(255,255,255,0.04) 3px,
+    rgba(255,255,255,0.04) 6px
+  );
+}
+.pd-card.face-down::after {
+  content: '🃏';
+  font-size: 1.2rem;
+  position: relative; z-index: 1;
+}
+.pd-card.red { color: #dc2626; }
+.pd-card.black { color: #1a1a2e; }
+
+/* Card inner layout */
+.pd-card-rank {
+  font-size: 1rem; font-weight: 700;
+  line-height: 1; margin-top: 2px;
+}
+.pd-card-suit {
+  font-size: 1.1rem; line-height: 1;
+}
+.pd-card-corner {
+  position: absolute; top: 3px; left: 5px;
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 0.55rem; line-height: 1.1;
+}
+.pd-card-corner-rank { font-weight: 700; }
+.pd-card-corner-suit { font-size: 0.6rem; }
+.pd-card-corner-br {
+  position: absolute; bottom: 3px; right: 5px;
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 0.55rem; line-height: 1.1;
+  transform: rotate(180deg);
+}
+
+/* Card deal animation */
+.pd-card.deal-anim {
+  animation: cardDeal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes cardDeal {
+  0% { transform: translateY(-40px) rotate(-15deg) scale(0.5); opacity: 0; }
+  100% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
+}
+.pd-card.reveal-anim {
+  animation: cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes cardReveal {
+  0% { transform: rotateY(90deg) scale(0.8); }
+  50% { transform: rotateY(-10deg) scale(1.05); }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+/* Card hover */
+.pd-card.face-up:hover { transform: translateY(-4px); }
+
+/* Hand of cards */
+.pd-hand {
+  display: flex; gap: 6px; justify-content: center; align-items: center;
+  min-height: 80px;
+}
+
+/* Player row */
+.pd-player {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px; border-radius: var(--radius);
+  background: var(--surface2); transition: all 0.3s;
+  position: relative;
+}
+.pd-player.is-me { border: 2px solid var(--pink); background: var(--pink-light); }
+.pd-player.dealer-tag::before {
+  content: 'เจ้ามือ';
+  position: absolute; top: -8px; left: 10px;
+  background: #f59e0b; color: #fff; font-size: 0.6rem;
+  padding: 1px 8px; border-radius: 10px; font-weight: 700;
+}
+.pd-player-info { flex: 1; min-width: 0; }
+.pd-player-name { font-weight: 700; font-size: 0.82rem; display: block; }
+.pd-player-status { font-size: 0.7rem; color: var(--text-dim); }
+.pd-player-score {
+  font-size: 0.75rem; font-weight: 800;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--surface3);
+}
+.pd-player-score.pok { background: #fbbf24; color: #78350f; }
+.pd-player-result {
+  position: absolute; top: -8px; right: 10px;
+  font-size: 0.65rem; font-weight: 800;
+  padding: 2px 10px; border-radius: 10px;
+}
+.pd-player-result.win { background: #D4EDDA; color: #155724; }
+.pd-player-result.lose { background: var(--pink-light); color: var(--pink); }
+.pd-player-result.draw { background: #FFF3CD; color: #856404; }
+.pd-player-type {
+  font-size: 0.68rem; font-weight: 700; color: var(--pink);
+}
+
+/* Action buttons */
+.pd-actions {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.pd-actions button {
+  flex: 1; min-width: 80px; padding: 10px 6px; border: none; border-radius: var(--radius);
+  font-family: var(--font); font-weight: 700; font-size: 0.82rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.pd-btn-deal {
+  background: var(--pink-gradient); color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 68, 88, 0.3);
+}
+.pd-btn-deal:hover { transform: translateY(-1px); }
+.pd-btn-draw {
+  background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+.pd-btn-draw:hover { transform: translateY(-1px); }
+.pd-btn-stand {
+  background: var(--surface2); color: var(--text);
+  border: 1.5px solid var(--surface3) !important;
+}
+.pd-btn-stand:hover { background: var(--surface3); }
+.pd-btn-join {
+  background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+.pd-btn-join:hover { transform: translateY(-1px); }
+.pd-btn-new {
+  background: var(--pink-gradient); color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 68, 88, 0.3);
+}
+.pd-info {
+  text-align: center; font-size: 0.78rem; color: var(--text-dim);
+  padding: 4px; font-weight: 600;
+}
+.pd-info strong { color: var(--pink); }
+
 /* ===== GAME TABS ===== */
 .game-tabs {
   display: flex; border-bottom: 1px solid var(--surface3);

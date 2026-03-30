@@ -433,6 +433,20 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const roomId = socketRoom.get(socket.id);
     if (roomId) {
+      // Clean up Pok Deng game
+      const pdGame = roomPokDeng.get(roomId);
+      if (pdGame && pdGame.phase !== 'finished') {
+        if (pdGame.dealer.socketId === socket.id) {
+          // Dealer left — end game
+          roomPokDeng.delete(roomId);
+          broadcastPokDengState(roomId);
+        } else {
+          // Remove player
+          pdGame.players = pdGame.players.filter(p => p.socketId !== socket.id);
+          if (pdGame.phase === 'playing') checkAllStood(roomId, pdGame);
+          broadcastPokDengState(roomId);
+        }
+      }
       removeFromCall(socket, roomId);
       leaveRoom(socket, roomId);
       io.emit('room-list', getRoomList());

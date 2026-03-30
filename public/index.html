@@ -226,7 +226,8 @@
         </div>
         <div class="game-tabs">
           <button class="game-tab active" data-tab="wordguess">ทายคำ</button>
-          <button class="game-tab" data-tab="poker">Poker Point</button>
+          <button class="game-tab" data-tab="pokdeng">ป็อกเด้ง</button>
+          <button class="game-tab" data-tab="poker">Poker</button>
         </div>
         <!-- Word Guess Tab -->
         <div id="gameContent" class="game-content game-tab-content" data-tab="wordguess">
@@ -237,6 +238,19 @@
               เริ่มเกมใหม่
             </button>
           </div>
+        </div>
+        <!-- Pok Deng Tab -->
+        <div id="pokdengContent" class="game-content game-tab-content" data-tab="pokdeng" style="display:none;">
+          <div class="pd-idle" id="pdIdle">
+            <div class="pd-logo">🃏</div>
+            <p class="pd-title">ป็อกเด้ง</p>
+            <p class="pd-desc">เกมไพ่ไทยสุดคลาสสิก 2-6 คน</p>
+            <button id="pdCreateBtn" class="btn-play btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              เปิดโต๊ะ (เป็นเจ้ามือ)
+            </button>
+          </div>
+          <div class="pd-session" id="pdSession" style="display:none;"></div>
         </div>
         <!-- Poker Planning Tab -->
         <div id="pokerContent" class="game-content game-tab-content" data-tab="poker" style="display:none;">

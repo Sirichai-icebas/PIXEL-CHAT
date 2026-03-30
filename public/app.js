@@ -545,6 +545,16 @@
       renderGameState(state);
     });
 
+    // Pok Deng state
+    socket.on('pokdeng-state', (state) => {
+      if (state && gamePanel.style.display === 'none') {
+        gamePanel.style.display = 'flex';
+        gameTabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === 'pokdeng'));
+        gameTabContents.forEach(c => c.style.display = c.getAttribute('data-tab') === 'pokdeng' ? 'flex' : 'none');
+      }
+      renderPokDengState(state);
+    });
+
     // Poker planning state
     socket.on('poker:state', (state) => {
       if (state && gamePanel.style.display === 'none') {
@@ -1334,6 +1344,7 @@
         c.style.display = c.getAttribute('data-tab') === target ? 'flex' : 'none';
       });
       if (target === 'poker' && socket) socket.emit('poker:get-state');
+      if (target === 'pokdeng' && socket) socket.emit('pokdeng-get-state');
     });
   });
 
@@ -1473,6 +1484,156 @@
       pokerSession.style.display = 'none';
       pokerTopicInput.focus();
     });
+  }
+
+  // ===== POK DENG CARD GAME =====
+  const pdIdle = document.getElementById('pdIdle');
+  const pdSession = document.getElementById('pdSession');
+  const pdCreateBtn = document.getElementById('pdCreateBtn');
+
+  pdCreateBtn.addEventListener('click', () => {
+    if (socket) socket.emit('pokdeng-create');
+  });
+
+  function renderCard(card, animClass) {
+    if (!card || card.rank === '?') {
+      return `<div class="pd-card face-down ${animClass || ''}"></div>`;
+    }
+    const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
+    return `<div class="pd-card face-up ${colorClass} ${animClass || ''}">
+      <div class="pd-card-corner"><span class="pd-card-corner-rank">${card.rank}</span><span class="pd-card-corner-suit">${card.suit}</span></div>
+      <div class="pd-card-rank">${card.rank}</div>
+      <div class="pd-card-suit">${card.suit}</div>
+      <div class="pd-card-corner-br"><span class="pd-card-corner-rank">${card.rank}</span><span class="pd-card-corner-suit">${card.suit}</span></div>
+    </div>`;
+  }
+
+  function renderPdPlayer(p, isDealer, state) {
+    const meClass = p.isMe ? ' is-me' : '';
+    const dealerClass = isDealer ? ' dealer-tag' : '';
+    const cards = (p.cards || []).map((c, i) => {
+      const anim = state.phase === 'playing' ? `deal-anim" style="animation-delay:${i * 0.15}s` : (state.phase === 'finished' && c.rank !== '?' ? 'reveal-anim' : '');
+      return renderCard(c, anim);
+    }).join('');
+
+    let scoreHtml = '';
+    if (p.score !== null && p.score !== undefined) {
+      const isPok = p.type && (p.type.name === 'ป็อก 8' || p.type.name === 'ป็อก 9');
+      scoreHtml = `<span class="pd-player-score${isPok ? ' pok' : ''}">${p.score} แต้ม</span>`;
+    }
+
+    let typeHtml = '';
+    if (p.type) typeHtml = `<span class="pd-player-type">${p.type.name}</span>`;
+
+    let resultHtml = '';
+    if (p.result) {
+      const rClass = p.result === 'win' ? 'win' : p.result === 'lose' ? 'lose' : 'draw';
+      const rLabel = p.result === 'win' ? '🏆 ชนะ' : p.result === 'lose' ? '💀 แพ้' : '🤝 เสมอ';
+      resultHtml = `<span class="pd-player-result ${rClass}">${rLabel}</span>`;
+    }
+
+    let statusText = '';
+    if (state.phase === 'playing') {
+      statusText = p.stood ? '✅ หงายแล้ว' : '⏳ กำลังคิด...';
+    }
+
+    return `<div class="pd-player${meClass}${dealerClass}">
+      ${resultHtml}
+      <div class="pd-player-info">
+        <span class="pd-player-name">${esc(p.displayName)}${p.isMe ? ' (คุณ)' : ''}</span>
+        <span class="pd-player-status">${statusText} ${typeHtml}</span>
+      </div>
+      ${scoreHtml}
+      <div class="pd-hand">${cards}</div>
+    </div>`;
+  }
+
+  function renderPokDengState(state) {
+    if (!state) {
+      pdIdle.style.display = 'flex';
+      pdSession.style.display = 'none';
+      return;
+    }
+    pdIdle.style.display = 'none';
+    pdSession.style.display = 'flex';
+
+    let html = '';
+
+    // Phase banner
+    const phaseLabels = {
+      waiting: '⏳ รอผู้เล่นเข้าร่วม...',
+      playing: '🃏 กำลังเล่น — เลือก จั่ว หรือ หงาย',
+      finished: '🎉 จบเกม!',
+    };
+    html += `<div class="pd-phase ${state.phase}">${phaseLabels[state.phase] || ''}</div>`;
+
+    // Player count
+    html += `<div class="pd-info"><strong>${state.playerCount}</strong> / ${state.maxPlayers} คน</div>`;
+
+    // Dealer
+    html += renderPdPlayer(state.dealer, true, state);
+
+    // Players
+    state.players.forEach(p => {
+      html += renderPdPlayer(p, false, state);
+    });
+
+    // Actions
+    html += '<div class="pd-actions">';
+
+    if (state.phase === 'waiting') {
+      // Am I the dealer?
+      if (state.dealer.isMe) {
+        if (state.players.length > 0) {
+          html += `<button class="pd-btn-deal" id="pdDealBtn">🃏 แจกไพ่</button>`;
+        } else {
+          html += `<button class="pd-btn-deal" disabled style="opacity:0.4">รอผู้เล่นเข้าร่วม...</button>`;
+        }
+      } else {
+        // Am I already joined?
+        const amJoined = state.players.some(p => p.isMe);
+        if (!amJoined) {
+          html += `<button class="pd-btn-join" id="pdJoinBtn">🙋 เข้าร่วม</button>`;
+        } else {
+          html += `<button class="pd-btn-stand" disabled>รออยู่ในโต๊ะ...</button>`;
+        }
+      }
+    }
+
+    if (state.phase === 'playing') {
+      // Find my player
+      const me = state.dealer.isMe ? state.dealer : state.players.find(p => p.isMe);
+      if (me && !me.stood) {
+        html += `<button class="pd-btn-draw" id="pdDrawBtn">🃏 จั่วไพ่</button>`;
+        html += `<button class="pd-btn-stand" id="pdStandBtn">✋ หงาย</button>`;
+      } else if (me && me.stood) {
+        html += `<button class="pd-btn-stand" disabled>รอคนอื่น...</button>`;
+      }
+    }
+
+    if (state.phase === 'finished') {
+      html += `<button class="pd-btn-new" id="pdNewGameBtn">🃏 เล่นอีกรอบ</button>`;
+    }
+
+    html += '</div>';
+
+    pdSession.innerHTML = html;
+
+    // Bind action buttons
+    const dealBtn = document.getElementById('pdDealBtn');
+    if (dealBtn) dealBtn.addEventListener('click', () => { if (socket) socket.emit('pokdeng-deal'); });
+
+    const joinBtn2 = document.getElementById('pdJoinBtn');
+    if (joinBtn2) joinBtn2.addEventListener('click', () => { if (socket) socket.emit('pokdeng-join'); });
+
+    const drawBtn = document.getElementById('pdDrawBtn');
+    if (drawBtn) drawBtn.addEventListener('click', () => { if (socket) socket.emit('pokdeng-draw'); });
+
+    const standBtn = document.getElementById('pdStandBtn');
+    if (standBtn) standBtn.addEventListener('click', () => { if (socket) socket.emit('pokdeng-stand'); });
+
+    const newGameBtn = document.getElementById('pdNewGameBtn');
+    if (newGameBtn) newGameBtn.addEventListener('click', () => { if (socket) socket.emit('pokdeng-create'); });
   }
 
   // ===== VOICE/VIDEO CALL =====

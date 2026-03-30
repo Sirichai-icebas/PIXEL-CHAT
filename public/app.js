@@ -231,7 +231,9 @@
   const callCameraBtn = document.getElementById('callCameraBtn');
   const callLeaveBtn = document.getElementById('callLeaveBtn');
   const callMinimize = document.getElementById('callMinimize');
+  const pcMinimizeBtn = document.getElementById('pcMinimizeBtn');
   const callSwitchCameraBtn = document.getElementById('callSwitchCameraBtn');
+
   const callScreenShareBtn = document.getElementById('callScreenShareBtn');
 
   function generateUUID() {
@@ -692,6 +694,7 @@
       pcPeerName.textContent = data.peer.displayName;
       pcRemoteAvatar.innerHTML = renderAvatar({ avatarId: data.peer.avatarId, profilePhoto: data.peer.profilePhoto });
       privateCallPanel.style.display = 'flex';
+      privateCallPanel.classList.remove('minimized');
 
       // Get media if not already
       if (!pcLocalStream) {
@@ -1695,10 +1698,12 @@
   });
 
   callMinimize.addEventListener('click', () => {
-    callPanel.style.display = 'none';
-    if (inCall) callBar.style.display = 'flex';
+    callPanel.classList.toggle('minimized');
   });
 
+  pcMinimizeBtn.addEventListener('click', () => {
+    privateCallPanel.classList.toggle('minimized');
+  });
   // ===== SWITCH CAMERA (mobile front/back) =====
   callSwitchCameraBtn.addEventListener('click', async () => {
     if (!localStream || isCameraOff || isScreenSharing) return;
@@ -1861,6 +1866,7 @@
 
   function showCallPanel() {
     callPanel.style.display = 'flex';
+    callPanel.classList.remove('minimized');
     callBar.style.display = 'none';
   }
 

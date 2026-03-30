@@ -31,7 +31,13 @@
       "Bash(node -c server.js)",
       "Bash(node -c public/app.js)",
       "Bash(rm -f /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/HEAD.lock /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/index.lock)",
-      "Bash(ls /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/*.lock)"
+      "Bash(ls /Users/sirichaimonhom/Documents/PIXEL-CHAT/.git/*.lock)",
+      "Bash(node --check /Users/sirichaimonhom/Documents/PIXEL-CHAT/public/app.js)",
+      "Bash(node --check /Users/sirichaimonhom/Documents/PIXEL-CHAT/server.js)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

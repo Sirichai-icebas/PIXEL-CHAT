@@ -2,7 +2,10 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ffffff" />
   <title>PIXEL CHAT</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -187,8 +190,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.6 11.6a9 9 0 0 1-7.2 0M12 3a9 9 0 0 0 0 18M12 3v18"/><circle cx="12" cy="12" r="9"/></svg>
           Video Call (<span id="callParticipantCount">0</span> คน)
         </span>
-        <button id="callMinimize" class="reply-bar-close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <button id="callMinimize" class="reply-bar-close" title="ย่อ/ขยาย">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
       <div id="videoGrid" class="video-grid"></div>
@@ -402,8 +405,15 @@
   <!-- Private Call Active Panel -->
   <div id="privateCallPanel" class="private-call-panel" style="display:none;">
     <div class="pc-header">
-      <span id="pcPeerName">1:1 Call</span>
-      <span id="pcTimer">00:00</span>
+      <div class="pc-header-left">
+        <span id="pcPeerName">1:1 Call</span>
+        <span id="pcTimer">00:00</span>
+      </div>
+      <div class="pc-header-right">
+        <button id="pcMinimizeBtn" class="pc-minimize-btn" title="ย่อ/ขยาย">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
     </div>
     <div class="pc-videos">
       <div class="pc-video-remote" id="pcRemoteVideo">

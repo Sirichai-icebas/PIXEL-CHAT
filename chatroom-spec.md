@@ -1,35 +1,34 @@
-# 💬 ChatRoom — Product Specification
+# 💬 ChatRoom — Product Specification (Updated)
 
-> ห้องแชทสาธารณะ ไม่ต้องสมัครสมาชิก ทุกคนเห็นกันหมด รองรับ Group Voice/Video Call
+> ห้องแชทสาธารณะและส่วนตัว รองรับการแบ่งห้อง (Multi-room), Private Chat, และ Mini-games
 
 ---
 
 ## 1. Overview
 
-**Product Name:** ChatRoom (หรือชื่อที่กำหนดเอง)  
-**Type:** Real-time Public Chat Web Application  
+**Product Name:** ChatRoom (Pixel-Chat)  
+**Type:** Real-time Social Chat Web Application  
 **Target Users:** ผู้ใช้ทั่วไปที่ต้องการพูดคุยแบบ Anonymous หรือใช้ชื่อเล่น  
-**Core Concept:** ห้องแชทสาธารณะที่ทุกคนในระบบเห็นข้อความพร้อมกัน โดยไม่ต้องสมัครสมาชิกหรือล็อกอิน
+**Core Concept:** ห้องแชทสาธารณะที่รองรับการแบ่งห้อง (Rooms), การคุยส่วนตัว (DM), และการทำกิจกรรมร่วมกันผ่านเกมและการ Call
 
 ---
 
 ## 2. Goals & Non-Goals
 
 ### ✅ Goals
-- ให้ผู้ใช้เข้าใช้งานได้ทันทีโดยไม่ต้องสมัครสมาชิก
-- รองรับการตั้งชื่อและเลือก Avatar ก่อนเข้าแชท
-- แสดงข้อความแบบ Real-time ให้ทุกคนในระบบเห็นพร้อมกัน
-- **Group Voice Call** — ทุกคนในห้องสามารถเปิด/เข้าร่วม voice call พร้อมกันได้
-- **Group Video Call** — รองรับ video stream พร้อม mute/camera toggle
-- เบา เร็ว ใช้ง่าย
+- ให้ผู้ใช้เข้าใช้งานได้ทันทีโดยไม่ต้องสมัครสมาชิก (Anonymous Session)
+- **Multi-room Support** — สามารถเลือกห้องหรือสร้างห้องแชทเองได้ (General, Gaming, Chill, etc.)
+- **Advanced Messaging** — รองรับการส่งรูปภาพ (Base64), การ Reply, และ @Mention
+- **Private Messaging (DM)** — คุยส่วนตัวแบบ 1:1 พร้อมประวัติแชทล่าสุด
+- **Mini-games** — กิจกรรมเล่นเกมทายคำ (Word Guess) และไพ่ป็อกเด้ง (Pok Deng) ภายในห้อง
+- **Group & Private Call** — รองรับ Voice/Video Call ทั้งในห้องแชทและแบบส่วนตัว
+- **User Status** — แสดงสถานะ Online, Away, Busy และข้อความสถานะ
 
 ### ❌ Non-Goals
-- ไม่มีระบบ Login / สมัครสมาชิก
-- ไม่มี Private Message (ในเวอร์ชันแรก)
-- ไม่มีการเก็บประวัติย้อนหลังระยะยาว
-- ไม่มีระบบ Admin หรือ Moderation ซับซ้อน
-- ไม่มี Recording call (เวอร์ชันแรก)
-- ไม่มี Screen sharing (เวอร์ชันแรก)
+- ระบบ Login แบบถาวร (เน้น Temporary Session)
+- การเก็บประวัติย้อนหลังระยะยาว (Sliding window 50-100 ข้อความ)
+- ระบบ Admin/Moderation ที่ซับซ้อน (เวอร์ชันแรก)
+- Screen sharing (เวอร์ชันแรก)
 
 ---
 
@@ -41,24 +40,24 @@
     ▼
 [หน้า Lobby / Setup]
     ├── กรอกชื่อที่แสดง (Display Name)
-    ├── เลือก Avatar
-    │       ├── Default Avatar (preset รูปภาพหรือ emoji)
-    │       └── อัปโหลดรูปของตัวเอง (optional)
-    └── กด "เข้าห้องแชท"
+    ├── เลือก Avatar หรือ อัปโหลดโปรไฟล์ (Base64)
+    ├── ตั้งค่าสถานะ (Online/Away/Busy)
+    └── กด "เริ่มใช้งาน"
             │
             ▼
-    [หน้า Chat Room]
-            ├── เห็นข้อความของทุกคนแบบ Real-time
-            ├── พิมพ์และส่งข้อความ
-            ├── เห็นรายชื่อผู้ใช้ที่ Online อยู่
-            └── ปุ่ม "เริ่ม Call" (Voice / Video)
+    [หน้าเลือกห้อง (Room Browser)]
+            ├── ดูรายชื่อห้องที่ว่างอยู่ (General, Gaming, Chill)
+            ├── ดูจำนวนคนออนไลน์แต่ละห้อง
+            ├── สร้างห้องใหม่ (Custom Room)
+            └── เลือก "เข้าห้องแชท"
                     │
                     ▼
-            [Call Session Panel]
-                    ├── แสดง video grid ของผู้เข้าร่วม
-                    ├── Mute / Unmute microphone
-                    ├── Camera On / Off
-                    └── Leave Call
+            [หน้า Chat Room / DM]
+                    ├── เห็นข้อความแบบ Real-time (Text, Image, System)
+                    ├── ตอบกลับ (Reply) หรือ แท็ก (@Mention)
+                    ├── เล่นมินิเกม (Word Guess, Pok Deng)
+                    ├── ดูรายชื่อผู้ใช้ที่ Online ทั้งระบบ
+                    └── เริ่ม Voice / Video Call (Group / 1:1)
 ```
 
 ---
@@ -70,236 +69,96 @@
 | Feature | รายละเอียด |
 |---|---|
 | **ตั้งชื่อ (Display Name)** | Input field กรอกชื่อได้สูงสุด 20 ตัวอักษร |
-| **Validation** | ห้ามชื่อว่าง, ห้ามอักขระพิเศษบางตัว |
-| **Default Avatar** | มี Avatar สำเร็จรูปให้เลือกอย่างน้อย 12 แบบ (เช่น emoji, illustration, animal) |
-| **Custom Avatar** | อัปโหลดรูปภาพเอง (JPG/PNG, ขนาดสูงสุด 2MB), auto-crop เป็น circle |
-| **ปุ่มเข้าห้องแชท** | กดแล้วเข้าสู่ Chat Room ได้เลย |
+| **Profile Photo** | อัปโหลดรูปภาพเอง (Base64), เก็บชั่วคราวใน session |
+| **User Status** | เลือกสถานะ Online, Away, Busy, Invisible และข้อความสถานะ (50 ตัวอักษร) |
 
 ---
 
-### 4.2 หน้า Chat Room
+### 4.2 หน้า Chat Room & Multi-room
 
-#### 4.2.1 Message Feed
-- แสดงข้อความทุกคนแบบ Real-time (WebSocket หรือ polling)
-- แต่ละข้อความแสดง: Avatar + ชื่อ + เวลา + เนื้อหา
-- ข้อความของตัวเองอยู่ฝั่งขวา, ของคนอื่นฝั่งซ้าย
-- Auto-scroll ลงล่างเมื่อมีข้อความใหม่
-- แสดง timestamp แบบ relative (เช่น "เมื่อกี้", "2 นาทีที่แล้ว")
+#### 4.2.1 Message Feed & Interaction
+- แสดงข้อความ Real-time: ข้อความปกติ, รูปภาพ (Image), และข้อความระบบ (System)
+- **Reply:** อ้างอิงข้อความเดิมในการตอบกลับ
+- **Mentions:** แท็กชื่อผู้ใช้อื่นในห้อง
+- **Image Sharing:** รองรับการอัปโหลดรูปภาพ (สูงสุด 5MB) ส่งในแชท
+- **Typing Indicator:** แสดงสถานะเมื่อมีคนกำลังพิมพ์
 
-#### 4.2.2 Input Area
-- Text input พิมพ์ข้อความ (สูงสุด 500 ตัวอักษร)
-- ส่งด้วย Enter หรือปุ่ม Send
-- รองรับ Emoji picker
-- แสดงจำนวนตัวอักษรที่เหลือ
+#### 4.2.2 Room Management
+- มีห้อง Default: **General, Gaming, Chill**
+- **Create Room:** ผู้ใช้สามารถสร้างห้องเองได้ (ชื่อ + icon) และระบบจะทำลายห้องเมื่อไม่มีคนเหลือ
 
-#### 4.2.3 Online Users Panel
-- แสดงรายชื่อและ Avatar ของผู้ใช้ที่ Online อยู่
-- แสดงจำนวนคนออนไลน์
-- อัปเดตแบบ Real-time
-
-#### 4.2.4 Group Call Bar (MVP)
-
-แสดงเป็น floating bar หรือ panel ด้านบน/ด้านข้างของ Chat Room
-
-| Feature | รายละเอียด |
-|---|---|
-| **ปุ่ม Start Call** | ปุ่มในห้องแชท กดเพื่อเริ่ม Voice/Video call |
-| **ปุ่ม Join Call** | แสดงเมื่อมี call ที่กำลังดำเนินอยู่ในห้อง |
-| **Call Notification** | System message แจ้งทุกคนในห้องเมื่อมีคนเริ่ม call |
-| **Video Grid** | แสดง video tile ของผู้เข้าร่วมแต่ละคน (ชื่อ + avatar fallback เมื่อปิดกล้อง) |
-| **Mute Toggle** | Mute / Unmute microphone ของตัวเอง |
-| **Camera Toggle** | เปิด / ปิดกล้อง (fallback แสดง Avatar แทน) |
-| **Leave Call** | ออกจาก call โดยไม่ต้องออกจากห้องแชท |
-| **Participant Count** | แสดงจำนวนคนที่อยู่ใน call ปัจจุบัน |
-
-> **MVP Scope:** รองรับ call สูงสุด **8 คน** ต่อห้อง ใช้ WebRTC แบบ Mesh (P2P) หรือ SFU ขึ้นกับ infra
+#### 4.2.3 Mini-games (In-room Activities)
+- **Word Guess:** เกมทายคำจากคำใบ้ (มีการจำกัดจำนวนครั้งทายและเฉลย)
+- **Pok Deng:** เกมไพ่ป็อกเด้ง รองรับผู้เล่นสูงสุด 5 คน (มีระบบ Dealer, จั่วไพ่, และสรุปผล)
 
 ---
 
-#### 4.2.5 System Messages
-- แจ้งเมื่อมีคนเข้าหรือออกจากห้อง เช่น `"Alex เข้าร่วมห้อง"`
-- แจ้งเมื่อมีการเริ่ม/จบ call เช่น `"Alex เริ่ม Voice Call 📞"` หรือ `"Call สิ้นสุดแล้ว"`
-- ข้อความระบบแสดงตรงกลางด้วย style แตกต่างจากข้อความปกติ
+### 4.3 Direct Messages (DM) & Private Calls
+
+#### 4.3.1 Private Chat
+- คุยส่วนตัว 1:1 โดยคลิกที่ชื่อผู้ใช้
+- เก็บประวัติแชทล่าสุด 50 ข้อความ (In-memory)
+- รองรับการส่งรูปภาพใน DM
+
+#### 4.3.2 Private 1:1 Call
+- ระบบสั่นเตือน (Ringing) เมื่อมีคนโทรเข้า
+- รองรับ Voice และ Video Call แบบ P2P (WebRTC)
 
 ---
 
 ## 5. Technical Requirements
 
-### 5.1 Frontend
-- Framework: React หรือ Vanilla JS + HTML/CSS
-- Responsive Design: รองรับ Mobile และ Desktop
-- Realtime: WebSocket (Socket.io) หรือ Firebase Realtime DB / Supabase
-- **WebRTC API** สำหรับ Voice/Video call (built-in browser API)
+### 5.1 Communication Stack
+- **Realtime:** Socket.io (Websocket/Polling)
+- **Signaling:** แลกเปลี่ยน SDP และ ICE Candidates ผ่าน Socket Server
+- **WebRTC:** Mesh P2P สำหรับทั้ง Group Call และ Private Call
 
-### 5.2 Backend
-- Node.js + Express + Socket.io **หรือ** Firebase/Supabase (no-backend approach)
-- เก็บข้อความล่าสุดได้ไม่เกิน 100 ข้อความ (sliding window)
-- ไม่มี User authentication
-- **Signaling Server** (ผ่าน Socket.io เดิม) สำหรับแลก SDP offer/answer และ ICE candidates ระหว่าง peers
-
-### 5.5 WebRTC & Call Infrastructure
-
-| Component | รายละเอียด |
-|---|---|
-| **Signaling** | ใช้ Socket.io server เดิม ส่ง `call:offer`, `call:answer`, `call:ice-candidate` events |
-| **STUN Server** | ใช้ Google STUN ฟรี (`stun:stun.l.google.com:19302`) สำหรับ NAT traversal |
-| **TURN Server** | Optional สำหรับ MVP — ใช้ Cloudflare TURN หรือ coturn self-hosted หากต้องการ reliability สูง |
-| **Topology** | **Mesh P2P** สำหรับ MVP (ง่ายกว่า, เหมาะกับผู้ใช้ไม่เกิน 8 คน) |
-| **Media Constraints** | Audio: always on, Video: optional (user toggle) |
-| **Codec** | ใช้ default browser codec (VP8/H.264 สำหรับ video, Opus สำหรับ audio) |
-
-### 5.3 Session Management
-- ใช้ `localStorage` หรือ `sessionStorage` เก็บ `displayName` และ `avatarId`
-- สร้าง `userId` แบบ UUID ชั่วคราว (หมดอายุเมื่อปิด browser หรือ clear storage)
-
-### 5.4 Avatar Storage
-- Default avatars: เก็บเป็น static assets บน server
-- Custom upload: ใช้ Base64 หรือ object URL ชั่วคราว (ไม่ต้องเก็บถาวร)
+### 5.2 Storage & Memory
+- **In-memory (Server):** เก็บข้อมูลห้อง (Rooms), เกม (Games), และ DM History
+- **Client Side:** ใช้ `localStorage` เก็บโปรไฟล์ผู้ใช้เบื้องต้น
+- **Cleanup:** มีระบบ Stale User Cleanup (ลบผู้ใช้ที่ไม่มีความเคลื่อนไหวเกิน 3 นาที)
 
 ---
 
 ## 6. Data Model
 
-### Message Object
+### Message Object (Advanced)
 ```json
 {
   "id": "uuid-v4",
   "userId": "temp-uuid",
   "displayName": "Alex",
-  "avatarUrl": "/avatars/default_3.png",
   "content": "สวัสดีทุกคน!",
-  "timestamp": "2026-03-26T10:00:00Z",
-  "type": "message" // or "system"
+  "imageUrl": "data:image/...", // Optional
+  "replyTo": { "id": "msg-id", "displayName": "Bob", "content": "..." }, // Optional
+  "mentions": ["userId-1", "userId-2"], // Optional
+  "type": "message" // message, image, system
 }
 ```
 
-### User Session (localStorage)
+### Game State (Pok Deng Example)
 ```json
 {
-  "userId": "temp-uuid",
-  "displayName": "Alex",
-  "avatarUrl": "/avatars/default_3.png",
-  "joinedAt": "2026-03-26T10:00:00Z"
+  "phase": "waiting", // waiting, playing, reveal, finished
+  "dealer": { "socketId": "...", "cards": [], "stood": false },
+  "players": [ { "socketId": "...", "cards": [], "stood": false } ],
+  "deck": [...]
 }
 ```
 
-### Call Session Object (in-memory, server-side)
-```json
-{
-  "callId": "uuid-v4",
-  "roomId": "default",
-  "type": "video",
-  "startedBy": "temp-uuid",
-  "startedAt": "2026-03-26T10:05:00Z",
-  "participants": [
-    {
-      "userId": "temp-uuid",
-      "displayName": "Alex",
-      "avatarUrl": "/avatars/default_3.png",
-      "isMuted": false,
-      "isCameraOff": false
-    }
-  ],
-  "status": "active"
-}
-```
-
-### Socket.io Events สำหรับ Call
-
-| Event | Direction | Payload |
-|---|---|---|
-| `call:start` | client → server → all | `{ callId, type, startedBy }` |
-| `call:join` | client → server → all | `{ callId, userId }` |
-| `call:leave` | client → server → all | `{ callId, userId }` |
-| `call:offer` | client → server → peer | `{ callId, to, sdp }` |
-| `call:answer` | client → server → peer | `{ callId, to, sdp }` |
-| `call:ice-candidate` | client → server → peer | `{ callId, to, candidate }` |
-| `call:toggle-media` | client → server → all | `{ callId, userId, isMuted, isCameraOff }` |
-| `call:end` | server → all | `{ callId }` |
-
 ---
 
-## 7. UI/UX Guidelines
+## 7. Socket.io Events (Summary)
 
-| หัวข้อ | แนวทาง |
+| Category | Events |
 |---|---|
-| **Theme** | Clean modern **light theme** — พื้นขาว/เทาอ่อน, soft shadows, rounded corners |
-| **Primary Color** | Pink/Coral (#FF4458) เป็น accent หลัก + gradient pink สำหรับ CTA buttons |
-| **Secondary Colors** | Warm gray (#F5F5F5) backgrounds, Dark (#1A1A2E) text, Light gray (#E8E8E8) borders |
-| **Font** | Rounded, friendly — 'Nunito' + 'Noto Sans Thai' (รองรับภาษาไทย) |
-| **Cards** | Rounded corners (16-20px), soft box-shadow, white background |
-| **Avatars** | Circular avatars พร้อม online status dot (green) |
-| **Buttons** | Rounded pill-shaped, pink gradient primary, outlined secondary |
-| **Illustrations** | Cute emoji/sticker style icons สำหรับห้องแชท |
-| **Layout** | Card-based, spacious padding, clean hierarchy |
-| **Loading State** | Skeleton loader ขณะโหลดข้อความเก่า |
-| **Error State** | Toast notification เมื่อส่งข้อความไม่สำเร็จ |
-| **Empty State** | แสดงข้อความชวนเริ่มแชทเมื่อยังไม่มีข้อความ + cute illustration |
-
-### Design Reference
-- สไตล์ Dating/Social App — clean, white, rounded, pink accent
-- Room cards แบบ grid พร้อม cute illustrations
-- Message bubbles: ของตัวเอง = pink/coral, ของคนอื่น = light gray
-- Header: white background, subtle bottom shadow
-- Online users: circular avatar + green dot status indicator
+| **Room** | `join-room`, `leave-room`, `create-room`, `room-list`, `online-users` |
+| **Chat** | `send-message`, `new-message`, `send-image`, `typing`, `message-history` |
+| **DM** | `dm:send`, `dm:message`, `dm:history`, `dm:typing` |
+| **Call** | `call:start`, `call:join`, `call:offer`, `call:answer`, `call:ice-candidate` |
+| **Private Call** | `private-call:initiate`, `private-call:incoming`, `private-call:accept` |
+| **Games** | `game-start`, `game-guess`, `pokdeng-create`, `pokdeng-deal`, `pokdeng-draw` |
 
 ---
 
-## 8. Default Avatars
-
-มี Avatar สำเร็จรูปอย่างน้อย **12 แบบ** — ใช้ Roblox-style block characters พร้อมสีสันต่างกัน
-
-> ทุก default avatar มี `id` และ `label` สำหรับ accessibility
-
----
-
-## 9. Edge Cases & Rules
-
-| กรณี | การจัดการ |
-|---|---|
-| ชื่อซ้ำกัน | อนุญาต (ไม่มี unique constraint) |
-| ข้อความว่าง | ปุ่ม Send disabled |
-| ข้อความยาวเกิน 500 ตัว | ไม่อนุญาตพิมพ์เพิ่ม + แสดงเตือน |
-| ผู้ใช้ออกจากห้อง | แสดง system message + ลบออกจาก online list |
-| Connection หลุด | แสดง reconnecting indicator + retry อัตโนมัติ |
-| รูป upload ขนาดเกิน | แจ้ง error + ไม่อัปโหลด |
-| **ผู้ใช้ปิด browser ระหว่าง call** | ระบบ auto-remove peer จาก call + แจ้ง system message |
-| **ผู้ใช้ปฏิเสธ camera/mic permission** | เข้าร่วมได้เฉพาะ audio-only หรือ listen-only พร้อมแสดง warning |
-| **Call ไม่มีคนเหลือ** | จบ call session อัตโนมัติ + แจ้ง system message |
-| **ผู้ใช้เกิน 8 คน** | แสดงปุ่ม Join ไม่ได้ + แจ้ง "Call เต็มแล้ว (8/8)" |
-| **Browser ไม่รองรับ WebRTC** | แสดง error message พร้อมแนะนำ browser ที่รองรับ |
-| **ICE connection ล้มเหลว** | retry 3 ครั้ง, ถ้าไม่สำเร็จแสดง "เชื่อมต่อไม่ได้" + ปุ่ม Rejoin |
-
----
-
-## 10. Out of Scope (Future Versions)
-
-- [ ] หลายห้องแชท (Multiple Rooms)
-- [ ] Private / Direct Message
-- [ ] Reactions (👍 ❤️ 😂)
-- [ ] Message Reply / Thread
-- [ ] ระบบ Moderator / Ban user
-- [ ] Push Notifications
-- [ ] ประวัติแชทย้อนหลังแบบถาวร
-- [ ] Screen Sharing ระหว่าง call
-- [ ] Call Recording
-- [ ] Raise Hand / React ใน call
-- [ ] รองรับผู้เข้าร่วม call มากกว่า 8 คน (SFU architecture)
-
----
-
-## 11. Success Metrics
-
-| Metric | Target |
-|---|---|
-| Time to first message | < 30 วินาทีหลังเปิดเว็บ |
-| Message delivery latency | < 500ms |
-| Uptime | 99% |
-| Mobile usability score | > 90 (Lighthouse) |
-| Call join latency | < 3 วินาทีหลังกด Join (LAN/good connection) |
-| Audio quality | ไม่มี echo หรือ feedback loop (browser echo cancellation) |
-| Max concurrent call participants | 8 คน ต่อห้อง |
-
----
-
-*Spec version 1.2 — วันที่ 28 มีนาคม 2569 (เปลี่ยน UI เป็น light theme สไตล์ dating/social app)*
+*Spec version 1.3 (Updated) — วันที่ 30 มีนาคม 2569 (ซิงค์ข้อมูลกับฟีเจอร์ปัจจุบันในระบบ)*

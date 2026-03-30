@@ -1009,6 +1009,7 @@ function getCallState(roomId) {
       avatarId: p.avatarId,
       isMuted: p.isMuted,
       isCameraOff: p.isCameraOff,
+      isScreenSharing: p.isScreenSharing || false,
     })),
   };
 }
@@ -1163,6 +1164,21 @@ function handleCallEvents(socket) {
       socketId: socket.id,
       isMuted: participant.isMuted,
       isCameraOff: participant.isCameraOff,
+    });
+  });
+
+  // Screen share toggle
+  socket.on('call:toggle-screen', (data) => {
+    const roomId = socketRoom.get(socket.id);
+    if (!roomId) return;
+    const call = roomCalls.get(roomId);
+    if (!call) return;
+    const participant = call.participants.get(socket.id);
+    if (!participant) return;
+    participant.isScreenSharing = !!data.isScreenSharing;
+    io.to(roomId).emit('call:screen-update', {
+      socketId: socket.id,
+      isScreenSharing: participant.isScreenSharing,
     });
   });
 

@@ -1161,6 +1161,54 @@ body {
 .call-ctrl-leave { background: var(--pink); }
 .call-ctrl-leave:hover { background: var(--pink-hover); }
 
+/* Switch camera: show only on mobile touch devices */
+.call-ctrl-mobile-only { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .call-ctrl-mobile-only { display: flex; }
+  .call-ctrl-desktop-only { display: none; }
+}
+/* Back camera: don't mirror */
+.video-tile.self.back-camera video { transform: scaleX(1); }
+
+/* Pin button on video tiles */
+.video-pin-btn {
+  position: absolute; top: 6px; right: 6px;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,0.5); color: #fff;
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  z-index: 2; transition: background 0.2s; padding: 0;
+}
+.video-tile:hover .video-pin-btn { display: flex; }
+.video-pin-btn:hover { background: rgba(0,0,0,0.8); }
+.video-tile.pinned .video-pin-btn { display: flex; background: var(--pink); }
+
+/* Pinned layout: spotlight mode */
+.video-grid.has-pinned {
+  display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start;
+}
+.video-grid.has-pinned .video-tile.pinned {
+  flex: 1 1 100%; aspect-ratio: 16/9; order: -1; min-height: 200px;
+  border: 2px solid var(--pink);
+  animation: pinPulse 0.4s ease;
+}
+@keyframes pinPulse {
+  0% { transform: scale(0.95); } 50% { transform: scale(1.01); } 100% { transform: scale(1); }
+}
+.video-grid.has-pinned .video-tile.unpinned {
+  flex: 0 0 130px; height: 98px; aspect-ratio: auto;
+}
+
+/* Screen sharing tile */
+.video-tile.screen-sharing video { transform: scaleX(1); object-fit: contain; }
+.video-tile.screen-sharing {
+  border: 2px solid #10b981; background: #111;
+}
+.video-tile.screen-sharing .video-tile-info::before {
+  content: '\1F5A5\FE0F ';
+}
+.call-ctrl-btn.screen-active { background: #10b981; }
+.call-ctrl-btn.screen-active:hover { background: #059669; }
+
 /* Logout button */
 .btn-logout {
   width: 36px; height: 36px; border-radius: 50%;

@@ -88,6 +88,10 @@
   let isMuted = false;
   let isCameraOff = false;
   let currentCallState = null;
+  let currentFacingMode = 'user';
+  let pinnedPeerId = null;
+  let isScreenSharing = false;
+  let screenStream = null;
 
   // Global users & status
   let globalOnlineUsers = [];
@@ -227,6 +231,8 @@
   const callCameraBtn = document.getElementById('callCameraBtn');
   const callLeaveBtn = document.getElementById('callLeaveBtn');
   const callMinimize = document.getElementById('callMinimize');
+  const callSwitchCameraBtn = document.getElementById('callSwitchCameraBtn');
+  const callScreenShareBtn = document.getElementById('callScreenShareBtn');
 
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -631,6 +637,22 @@
         } else if (!data.isMuted && muteIcon) {
           muteIcon.remove();
         }
+      }
+    });
+
+    // Screen share update — auto-pin the sharer
+    socket.on('call:screen-update', (data) => {
+      const tile = videoGrid.querySelector(`[data-peer-id="${data.socketId}"]`);
+      if (tile) {
+        tile.classList.toggle('screen-sharing', data.isScreenSharing);
+      }
+      // Auto-pin when someone shares, unpin when they stop
+      if (data.isScreenSharing && data.socketId !== socket.id) {
+        pinnedPeerId = data.socketId;
+        applyPinLayout();
+      } else if (!data.isScreenSharing && pinnedPeerId === data.socketId) {
+        pinnedPeerId = null;
+        applyPinLayout();
       }
     });
 
@@ -1677,6 +1699,84 @@
     if (inCall) callBar.style.display = 'flex';
   });
 
+  // ===== SWITCH CAMERA (mobile front/back) =====
+  callSwitchCameraBtn.addEventListener('click', async () => {
+    if (!localStream || isCameraOff || isScreenSharing) return;
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: currentFacingMode }, audio: false,
+      });
+      const newTrack = newStream.getVideoTracks()[0];
+      const oldTrack = localStream.getVideoTracks()[0];
+      if (oldTrack) { localStream.removeTrack(oldTrack); oldTrack.stop(); }
+      localStream.addTrack(newTrack);
+      // Update self video
+      const selfVideo = videoGrid.querySelector('.video-tile.self video');
+      if (selfVideo) selfVideo.srcObject = localStream;
+      // Replace on all peers
+      peers.forEach(({ pc }) => {
+        const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+        if (sender) sender.replaceTrack(newTrack);
+      });
+      // Toggle mirror
+      const selfTile = videoGrid.querySelector('.video-tile.self');
+      if (selfTile) selfTile.classList.toggle('back-camera', currentFacingMode === 'environment');
+      callSwitchCameraBtn.classList.toggle('active', currentFacingMode === 'environment');
+    } catch (e) {
+      console.warn('Switch camera failed:', e);
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    }
+  });
+
+  // ===== SCREEN SHARING =====
+  callScreenShareBtn.addEventListener('click', async () => {
+    if (isScreenSharing) { stopScreenShare(); return; }
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: 'always' }, audio: false,
+      });
+      const screenTrack = screenStream.getVideoTracks()[0];
+      // Replace video track on all peers
+      peers.forEach(({ pc }) => {
+        const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+        if (sender) sender.replaceTrack(screenTrack);
+      });
+      // Update self tile
+      const selfVideo = videoGrid.querySelector('.video-tile.self video');
+      if (selfVideo) selfVideo.srcObject = screenStream;
+      const selfTile = videoGrid.querySelector('.video-tile.self');
+      if (selfTile) { selfTile.classList.add('screen-sharing'); selfTile.classList.remove('camera-off'); }
+      isScreenSharing = true;
+      callScreenShareBtn.classList.add('screen-active');
+      if (socket) socket.emit('call:toggle-screen', { isScreenSharing: true });
+      // Handle browser's native "Stop sharing"
+      screenTrack.onended = () => stopScreenShare();
+    } catch (e) {
+      console.warn('Screen share cancelled:', e);
+    }
+  });
+
+  function stopScreenShare() {
+    if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
+    isScreenSharing = false;
+    callScreenShareBtn.classList.remove('screen-active');
+    // Restore camera track
+    const videoTrack = localStream?.getVideoTracks()[0] || null;
+    peers.forEach(({ pc }) => {
+      const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) sender.replaceTrack(videoTrack);
+    });
+    const selfVideo = videoGrid.querySelector('.video-tile.self video');
+    if (selfVideo) selfVideo.srcObject = localStream;
+    const selfTile = videoGrid.querySelector('.video-tile.self');
+    if (selfTile) {
+      selfTile.classList.remove('screen-sharing');
+      selfTile.classList.toggle('camera-off', isCameraOff);
+    }
+    if (socket) socket.emit('call:toggle-screen', { isScreenSharing: false });
+  }
+
   async function getMedia() {
     try {
       return await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -1738,12 +1838,18 @@
       localStream.getTracks().forEach(t => t.stop());
       localStream = null;
     }
+    if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
     peers.forEach(({ pc }) => pc.close());
     peers.clear();
     videoGrid.innerHTML = '';
     inCall = false;
     isMuted = false;
     isCameraOff = false;
+    isScreenSharing = false;
+    currentFacingMode = 'user';
+    pinnedPeerId = null;
+    videoGrid.classList.remove('has-pinned');
+    if (callScreenShareBtn) callScreenShareBtn.classList.remove('screen-active');
     callPanel.style.display = 'none';
     // Show call bar if call still active
     if (currentCallState && currentCallState.participants.length > 0) {
@@ -1844,15 +1950,47 @@
     info.className = 'video-tile-info';
     info.innerHTML = `<span>${esc(name)}${isSelf ? ' (คุณ)' : ''}</span>`;
 
+    // Pin button
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'video-pin-btn';
+    pinBtn.title = 'ปักหมุด';
+    pinBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>';
+    pinBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePin(id); });
+
     tile.appendChild(video);
     tile.appendChild(avatarDiv);
     tile.appendChild(info);
+    tile.appendChild(pinBtn);
     videoGrid.appendChild(tile);
+    // Re-apply pin layout if needed
+    if (pinnedPeerId) applyPinLayout();
   }
 
   function removeVideoTile(id) {
     const tile = videoGrid.querySelector(`[data-peer-id="${id}"]`);
     if (tile) tile.remove();
+    if (pinnedPeerId === id) { pinnedPeerId = null; applyPinLayout(); }
+  }
+
+  // ===== PIN / SPOTLIGHT =====
+  function togglePin(peerId) {
+    pinnedPeerId = pinnedPeerId === peerId ? null : peerId;
+    applyPinLayout();
+  }
+
+  function applyPinLayout() {
+    const allTiles = videoGrid.querySelectorAll('.video-tile');
+    if (pinnedPeerId) {
+      videoGrid.classList.add('has-pinned');
+      allTiles.forEach(tile => {
+        const pid = tile.getAttribute('data-peer-id');
+        tile.classList.toggle('pinned', pid === pinnedPeerId);
+        tile.classList.toggle('unpinned', pid !== pinnedPeerId);
+      });
+    } else {
+      videoGrid.classList.remove('has-pinned');
+      allTiles.forEach(tile => { tile.classList.remove('pinned', 'unpinned'); });
+    }
   }
 
   function updateCallUI(state) {
